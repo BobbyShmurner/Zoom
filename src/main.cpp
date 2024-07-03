@@ -55,19 +55,6 @@ public:
 		pauseLayer->setVisible(visible);
 	}
 
-	void onResume() {
-		setZoom(1.0f);
-		setPos(0.0f, 0.0f);
-
-		isPaused = false;
-		ZoomManager::get()->middleMouseDown = false;
-	}
-
-	void onPause() {
-		isPaused = true;
-		ZoomManager::get()->middleMouseDown = false;
-	}
-
 	void setZoom(float zoom) {
 		CCNode* playLayer = CCScene::get()->getChildByID("PlayLayer");
 		if (!playLayer) return;
@@ -103,52 +90,6 @@ public:
 		onScreenResize();
 	}
 
-	void onScreenResize() {
-		clampPos();
-		if (!isPaused) return;
-
-		CCNode* playLayer = CCScene::get()->getChildByID("PlayLayer");
-		if (!playLayer) return;
-
-		if (autoShowMenu && playLayer->getScale() == 1.0f) {
-			setPauseMenuVisible(true);
-		}
-	}
-
-	CCSize getScreenSize() {
-		float screenTop = CCDirector::sharedDirector()->getScreenTop();
-		float screenBottom = CCDirector::sharedDirector()->getScreenBottom();
-		float screenLeft = CCDirector::sharedDirector()->getScreenLeft();
-		float screenRight = CCDirector::sharedDirector()->getScreenRight();
-
-		return CCSize{ screenRight - screenLeft, screenTop - screenBottom };
-	}
-
-	CCPoint getMousePosOnScreen() {
-		return screenToWorld(CCEGLView::get()->getMousePosition());
-	}
-
-	CCPoint getMousePosOnNode(CCNode* node) {
-		return node->convertToNodeSpace(getMousePosOnScreen());
-	}
-
-	void clampPos() {
-		CCNode* playLayer = CCScene::get()->getChildByID("PlayLayer");
-		if (!playLayer) return;
-
-		CCPoint pos = playLayer->getPosition();
-		CCSize screenSize = getScreenSize();
-		CCSize contentSize = playLayer->getContentSize();
-
-		float xLimit = (contentSize.width * playLayer->getScale() - screenSize.width) / 2;
-		float yLimit = (contentSize.height * playLayer->getScale() - screenSize.height) / 2;
-
-		pos.x = clamp(pos.x, -xLimit, xLimit);
-		pos.y = clamp(pos.y, -yLimit, yLimit);
-
-		playLayer->setPosition(pos);
-	}
-
 	void move(CCPoint delta) {
 		CCNode* playLayer = CCScene::get()->getChildByID("PlayLayer");
 		if (!playLayer) return;
@@ -168,18 +109,6 @@ public:
 		onScreenMove();
 	}
 
-	void onScreenMove() {
-		clampPos();
-		if (!isPaused) return;
-
-		CCNode* playLayer = CCScene::get()->getChildByID("PlayLayer");
-		if (!playLayer) return;
-
-		if (autoHideMenu && playLayer->getScale() != 1.0f) {
-			setPauseMenuVisible(false);
-		}
-	}
-
 	float getZoom() {
 		CCNode* playLayer = CCScene::get()->getChildByID("PlayLayer");
 		if (!playLayer) return 1.0f;
@@ -187,22 +116,28 @@ public:
 		return playLayer->getScale();
 	}
 
-	void onScroll(float y, float x) {
-		if (!isPaused) return;
-		if (autoHideMenu) setPauseMenuVisible(false);
-
-		if (y > 0) {
-			zoom(-0.1f);
-		} else {
-			zoom(0.1f);
-		}
-	}
-
 	CCPoint screenToWorld(CCPoint pos) {
 		CCSize screenSize = getScreenSize();
 		CCSize winSize = CCEGLView::get()->getFrameSize();
 
 		return CCPoint{ pos.x * (screenSize.width / winSize.width), pos.y * (screenSize.height / winSize.height) };
+	}
+
+	CCSize getScreenSize() {
+		float screenTop = CCDirector::sharedDirector()->getScreenTop();
+		float screenBottom = CCDirector::sharedDirector()->getScreenBottom();
+		float screenLeft = CCDirector::sharedDirector()->getScreenLeft();
+		float screenRight = CCDirector::sharedDirector()->getScreenRight();
+
+		return CCSize{ screenRight - screenLeft, screenTop - screenBottom };
+	}
+
+	CCPoint getMousePosOnScreen() {
+		return screenToWorld(CCEGLView::get()->getMousePosition());
+	}
+
+	CCPoint getMousePosOnNode(CCNode* node) {
+		return node->convertToNodeSpace(getMousePosOnScreen());
 	}
 
 	void update(float dt) {
@@ -217,6 +152,71 @@ public:
 		if (middleMouseDown) {
 			CCPoint delta = ZoomManager::get()->deltaMousePos;
 			move(screenToWorld(CCPoint { delta.x, -delta.y }));
+		}
+	}
+
+	void onResume() {
+		setZoom(1.0f);
+		setPos(0.0f, 0.0f);
+
+		isPaused = false;
+		ZoomManager::get()->middleMouseDown = false;
+	}
+
+	void onPause() {
+		isPaused = true;
+		ZoomManager::get()->middleMouseDown = false;
+	}
+
+	void onScroll(float y, float x) {
+		if (!isPaused) return;
+		if (autoHideMenu) setPauseMenuVisible(false);
+
+		if (y > 0) {
+			zoom(-0.1f);
+		} else {
+			zoom(0.1f);
+		}
+	}
+private:
+	void onScreenResize() {
+		clampPos();
+		if (!isPaused) return;
+
+		CCNode* playLayer = CCScene::get()->getChildByID("PlayLayer");
+		if (!playLayer) return;
+
+		if (autoShowMenu && playLayer->getScale() == 1.0f) {
+			setPauseMenuVisible(true);
+		}
+	}
+
+	void clampPos() {
+		CCNode* playLayer = CCScene::get()->getChildByID("PlayLayer");
+		if (!playLayer) return;
+
+		CCPoint pos = playLayer->getPosition();
+		CCSize screenSize = getScreenSize();
+		CCSize contentSize = playLayer->getContentSize();
+
+		float xLimit = (contentSize.width * playLayer->getScale() - screenSize.width) * 0.5f;
+		float yLimit = (contentSize.height * playLayer->getScale() - screenSize.height) * 0.5f;
+
+		pos.x = clamp(pos.x, -xLimit, xLimit);
+		pos.y = clamp(pos.y, -yLimit, yLimit);
+
+		playLayer->setPosition(pos);
+	}
+
+	void onScreenMove() {
+		clampPos();
+		if (!isPaused) return;
+
+		CCNode* playLayer = CCScene::get()->getChildByID("PlayLayer");
+		if (!playLayer) return;
+
+		if (autoHideMenu && playLayer->getScale() != 1.0f) {
+			setPauseMenuVisible(false);
 		}
 	}
 };
@@ -281,7 +281,6 @@ class $modify(PlayLayer) {
 class $modify(CCScheduler) {
 	virtual void update(float dt) {
 		ZoomManager::get()->update(dt);
-
 		CCScheduler::update(dt);
 	}
 };

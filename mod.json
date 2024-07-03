@@ -1,0 +1,44 @@
+{
+	"geode": "3.1.1",
+	"gd": {
+		"win": "2.206",
+		"mac": "2.206"
+	},
+	"id": "bobby_shmurner.zoom",
+	"name": "Zoom",
+	"version": "v1.0.0",
+	"developer": "Bobby Shmurner",
+	"description": "Allows you to zoom in while paused!",
+	"dependencies": [
+        {
+            "id": "geode.node-ids",
+            "version": ">=v1.13.0",
+            "importance": "required"
+        },
+		{
+            "id": "geode.custom-keybinds",
+            "version": ">=v1.6.2",
+            "importance": "required"
+        }
+    ],
+	"tags": [
+		"enhancement",
+		"interface",
+		"offline",
+		"utility"
+	],
+	"settings": {
+		"auto-hide-menu": {
+			"name": "Auto Hide Menu",
+			"description": "Automatically hides the menu when you zoom in.",
+			"type": "bool",
+			"default": true
+		},
+		"auto-show-menu": {
+			"name": "Auto Show Menu",
+			"description": "Automatically shows the menu when you zoom back out.",
+			"type": "bool",
+			"default": true
+		}
+	}
+}

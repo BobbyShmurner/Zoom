@@ -5,10 +5,10 @@
 		"mac": "2.206"
 	},
 	"id": "bobby_shmurner.zoom",
-	"name": "Zoom",
+	"name": "Zoooom!",
 	"version": "v1.0.0",
 	"developer": "Bobby Shmurner",
-	"description": "Allows you to zoom in while paused!",
+	"description": "Allows you to zoom while paused!",
 	"repository": "https://github.com/BobbyShmurner/Zoom",
 	"dependencies": [
         {

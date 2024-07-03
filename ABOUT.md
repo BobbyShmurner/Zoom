@@ -1,4 +1,4 @@
-# Zoom
+# Zoooom!
 
 Allows you to zoom while on the pause menu!
 

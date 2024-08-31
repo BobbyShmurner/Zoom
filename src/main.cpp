@@ -33,6 +33,7 @@ public:
 
 	bool autoHideMenu;
 	bool autoShowMenu;
+	bool altDisablesZoom;
 
 	static ZoomManager* get() {
 		static auto inst = new ZoomManager;
@@ -172,6 +173,13 @@ public:
 		if (!isPaused) return;
 		if (autoHideMenu) setPauseMenuVisible(false);
 
+		if (altDisablesZoom) {
+			auto kb = CCKeyboardDispatcher::get();
+			if (kb->getAltKeyPressed()) {
+				return;
+			}
+		}
+
 		if (y > 0) {
 			zoom(-0.1f);
 		} else {
@@ -222,8 +230,7 @@ private:
 };
 
 class $modify(PauseLayer) {
-	$override
-	bool init(bool p0) {
+	void customSetup() {
 		this->template addEventListener<InvokeBindFilter>([=](InvokeBindEvent* event) {
 			if (event->isDown()) {
 				ZoomManager::get()->togglePauseMenu();
@@ -232,7 +239,7 @@ class $modify(PauseLayer) {
 			return ListenerResult::Propagate;
 		}, "toggle_menu"_spr);
 
-		return PauseLayer::init(p0);
+		PauseLayer::customSetup();
 	}
 
 	void onResume(CCObject* sender) {
@@ -317,6 +324,12 @@ $execute {
 	listenForSettingChanges("auto-show-menu", +[](bool enable) {
 		ZoomManager::get()->autoShowMenu = enable;
 	});
+
+	ZoomManager::get()->autoShowMenu = Mod::get()->getSettingValue<bool>("alt-disables-zoom");
+	listenForSettingChanges("alt-disables-zoom", +[](bool enable) {
+		ZoomManager::get()->altDisablesZoom = enable;
+	});
+
 
     BindManager::get()->registerBindable({
         "toggle_menu"_spr,

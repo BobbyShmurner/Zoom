@@ -1,11 +1,11 @@
 {
-	"geode": "3.1.1",
+	"geode": "3.4.0",
 	"gd": {
 		"win": "2.206"
 	},
 	"id": "bobby_shmurner.zoom",
 	"name": "Zoooom!",
-	"version": "v1.0.0",
+	"version": "1.1.0",
 	"developer": "Bobby Shmurner",
 	"description": "Allows you to zoom while paused!",
 	"repository": "https://github.com/BobbyShmurner/Zoom",
@@ -37,6 +37,12 @@
 		"auto-show-menu": {
 			"name": "Auto Show Menu",
 			"description": "Automatically shows the menu when you zoom back out.",
+			"type": "bool",
+			"default": true
+		},
+		"alt-disables-zoom": {
+			"name": "Alt Disables Zoom",
+			"description": "Disables zooming while Alt is held.",
 			"type": "bool",
 			"default": true
 		}

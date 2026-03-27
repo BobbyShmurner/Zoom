@@ -4,8 +4,6 @@
 #include "desktop.hpp"
 #include "settings.hpp"
 
-#include <geode.custom-keybinds/include/Keybinds.hpp>
-
 #include <Geode/Geode.hpp>
 
 #include <Geode/modify/PauseLayer.hpp>
@@ -13,14 +11,13 @@
 #include <Geode/modify/CCMouseDispatcher.hpp>
 #include <Geode/modify/PlayLayer.hpp>
 #ifdef GEODE_IS_WINDOWS
-#include <Geode/modify/CCEGLView.hpp>
+#include <Windows.h>
 #else
 #include <objc/message.h>
 #endif // GEODE_IS_WINDOWS
 #include <Geode/modify/CCScheduler.hpp>
 
 using namespace geode::prelude;
-using namespace keybinds;
 
 WindowsZoomManager* WindowsZoomManager::get() {
 	static auto inst = new WindowsZoomManager;
@@ -173,14 +170,6 @@ void WindowsZoomManager::onScreenModified() {
 
 class $modify(PauseLayer) {
 	void customSetup() {
-		this->template addEventListener<InvokeBindFilter>([=](InvokeBindEvent* event) {
-			if (event->isDown()) {
-				WindowsZoomManager::get()->togglePauseMenu();
-			}
-
-			return ListenerResult::Propagate;
-		}, "toggle_menu"_spr);
-
 		PauseLayer::customSetup();
 	}
 
@@ -229,26 +218,18 @@ class $modify(PlayLayer) {
 
 class $modify(CCScheduler) {
 	virtual void update(float dt) {
+		#ifdef GEODE_IS_WINDOWS
+		// Poll middle mouse button since CCEGLView::onGLFWMouseCallBack is inlined in v5
+		bool middleDown = (GetAsyncKeyState(VK_MBUTTON) & 0x8000) != 0;
+		WindowsZoomManager::get()->isPanning = middleDown && WindowsZoomManager::get()->isPaused;
+		#endif
 		WindowsZoomManager::get()->update(dt);
 		CCScheduler::update(dt);
 	}
 };
 
 #ifdef GEODE_IS_WINDOWS
-class $modify(CCEGLView) {
-	void onGLFWMouseCallBack(GLFWwindow* window, int button, int action, int mods) {
-		if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
-			if (action == GLFW_PRESS) {
-				WindowsZoomManager::get()->isPanning = true;
-			}
-			else if (action == GLFW_RELEASE) {
-				WindowsZoomManager::get()->isPanning = false;
-			}
-		}
-
-		CCEGLView::onGLFWMouseCallBack(window, button, action, mods);
-	}
-};
+// Middle mouse polling is done in CCScheduler::update above
 #else
 void otherMouseDownHook(void* self, SEL sel, void* event) {
 	WindowsZoomManager::get()->isPanning = true;

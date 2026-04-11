@@ -31,6 +31,11 @@ SettingsManager* SettingsManager::get() {
 }
 
 void SettingsManager::init() {
+	hidePracticeButtons = Mod::get()->getSettingValue<bool>("hide-practice-buttons");
+	listenForSettingChanges<bool>("hide-practice-buttons", [&](bool enable) {
+		hidePracticeButtons = enable;
+	});
+
 	#ifdef GEODE_IS_DESKTOP
 	autoHideMenu = Mod::get()->getSettingValue<bool>("auto-hide-menu");
 	listenForSettingChanges<bool>("auto-hide-menu", [&](bool enable) {

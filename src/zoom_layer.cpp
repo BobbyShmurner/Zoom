@@ -1,5 +1,6 @@
 #include "zoom_layer.hpp"
 
+#include "settings.hpp"
 #include "utils.hpp"
 
 #include <Geode/modify/PauseLayer.hpp>
@@ -13,6 +14,22 @@ using namespace geode::prelude;
 
 namespace {
 	ZoomLayer* s_activeZoomLayer = nullptr;
+
+	void setPracticeButtonsVisible(bool visible) {
+		if (!SettingsManager::get()->hidePracticeButtons) {
+			return;
+		}
+
+		if (auto uiLayer = UILayer::get()) {
+			auto playLayer = PlayLayer::get();
+			if (!playLayer || !playLayer->m_isPracticeMode) {
+				uiLayer->toggleCheckpointsMenu(false);
+				return;
+			}
+
+			uiLayer->toggleCheckpointsMenu(visible);
+		}
+	}
 }
 
 ZoomLayer* ZoomLayer::get() {
@@ -77,6 +94,7 @@ bool ZoomLayer::init(CCNode* sceneLayer) {
 	this->setKeypadEnabled(true);
 
 	pauseLayer->setVisible(false);
+	setPracticeButtonsVisible(false);
 
 	m_backMenu = CCMenu::create();
 	m_backMenu->ignoreAnchorPointForPosition(false);
@@ -140,6 +158,9 @@ void ZoomLayer::close(bool resetView, bool restorePauseLayer) {
 	if (restorePauseLayer) {
 		this->setPauseMenuVisible(true);
 	}
+	else {
+		setPracticeButtonsVisible(true);
+	}
 
 	if (this->getParent()) {
 		this->removeFromParentAndCleanup(true);
@@ -157,11 +178,13 @@ void ZoomLayer::setPauseMenuVisible(bool visible) {
 	if (auto pauseLayer = this->getPauseLayer()) {
 		pauseLayer->setVisible(visible);
 	}
+
+	setPracticeButtonsVisible(visible);
 }
 
 void ZoomLayer::togglePauseMenu() {
 	if (auto pauseLayer = this->getPauseLayer()) {
-		pauseLayer->setVisible(!pauseLayer->isVisible());
+		this->setPauseMenuVisible(!pauseLayer->isVisible());
 	}
 }
 

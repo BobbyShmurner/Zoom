@@ -17,6 +17,8 @@ public:
 	static SettingsManager* get();
 	void init();
 
+	bool hidePracticeButtons = true;
+
 	#ifdef GEODE_IS_DESKTOP
 	bool autoHideMenu;
 	bool autoShowMenu;

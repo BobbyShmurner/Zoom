@@ -168,7 +168,7 @@ void WindowsZoomManager::onZoomKey(bool zoomIn) {
 	}
 
 	auto zoomDelta = SettingsManager::get()->zoomSensitivity * 0.1f;
-	zoomLayer->zoomBy(zoomIn ? zoomDelta : -zoomDelta, getScreenCenter());
+	zoomLayer->zoomBy(zoomIn ? zoomDelta : -zoomDelta, getMousePos());
 	updateZoomLayerMenuState(zoomLayer);
 }
 

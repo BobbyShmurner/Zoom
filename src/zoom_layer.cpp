@@ -74,6 +74,7 @@ bool ZoomLayer::init(CCNode* sceneLayer) {
 	this->setID("zoom-layer"_spr);
 	this->setZOrder(11);
 	sceneLayer->addChild(this);
+	this->setKeypadEnabled(true);
 
 	pauseLayer->setVisible(false);
 
@@ -125,7 +126,13 @@ void ZoomLayer::onExit() {
 	CCLayer::onExit();
 }
 
+void ZoomLayer::keyBackClicked() {
+	this->close(true, true);
+}
+
 void ZoomLayer::close(bool resetView, bool restorePauseLayer) {
+	this->setKeypadEnabled(false);
+
 	if (resetView) {
 		this->resetView();
 	}

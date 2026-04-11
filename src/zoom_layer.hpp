@@ -16,6 +16,7 @@ public:
 
 	bool init(CCNode* sceneLayer);
 	void onExit() override;
+	void keyBackClicked() override;
 
 	void close(bool resetView = true, bool restorePauseLayer = true);
 	void resetView();

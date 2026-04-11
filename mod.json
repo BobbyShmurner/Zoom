@@ -26,7 +26,7 @@
   "tags": ["enhancement", "interface", "offline", "utility"],
   "settings": {
     "zoom-sensitivity": {
-      "name": "Zoom Speed",
+      "name": "Zoom Sensitivity",
       "description": "The zoom sensitivity. Higher values zoom in faster.",
       "type": "float",
       "default": 1,

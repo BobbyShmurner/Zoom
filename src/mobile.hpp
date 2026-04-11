@@ -12,6 +12,8 @@ public:
 	static AndroidZoomLayer* create(CCNode* sceneLayer);
 
 	bool init(CCNode* sceneLayer);
+	void registerWithTouchDispatcher() override;
+	void onExit() override;
 	bool ccTouchBegan(CCTouch* pTouch, CCEvent* pEvent) override;
 	void ccTouchMoved(CCTouch* pTouch, CCEvent* pEvent) override;
 	void ccTouchEnded(CCTouch* pTouch, CCEvent* pEvent) override;
@@ -28,6 +30,7 @@ private:
 	CCNode* m_sceneLayer;
 	CCNode* m_playLayer;
 	CCNode* m_pauseLayer;
+	CCMenu* m_backMenu = nullptr;
 	std::vector<CCTouch*> m_touches = {};
 };
 

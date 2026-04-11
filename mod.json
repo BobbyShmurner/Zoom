@@ -30,7 +30,7 @@
       "description": "The zoom sensitivity. Higher values zoom in faster.",
       "type": "float",
       "default": 1,
-      "min": 0.1,
+      "min": 0,
       "max": 10,
       "control": {
         "slider": true

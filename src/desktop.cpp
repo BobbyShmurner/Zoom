@@ -17,6 +17,8 @@
 using namespace geode::prelude;
 
 namespace {
+	constexpr float kClosedZoomThreshold = 1.001f;
+
 	CCPoint getScreenCenter() {
 		auto screenSize = getScreenSize();
 		return ccp(screenSize.width * 0.5f, screenSize.height * 0.5f);
@@ -44,7 +46,7 @@ namespace {
 			return;
 		}
 
-		if (zoomLayer->getZoom() <= 1.01f) {
+		if (zoomLayer->getZoom() <= kClosedZoomThreshold) {
 			if (SettingsManager::get()->autoShowMenu) {
 				ZoomLayer::closeActive(true, true);
 			}
@@ -119,7 +121,7 @@ void WindowsZoomManager::update(float dt) {
 	lastMousePos = mousePos;
 
 	auto zoomLayer = getPausedZoomLayer(false);
-	if (!zoomLayer || zoomLayer->getZoom() <= 1.01f) {
+	if (!zoomLayer || zoomLayer->getZoom() <= kClosedZoomThreshold) {
 		return;
 	}
 

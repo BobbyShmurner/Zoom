@@ -92,6 +92,7 @@ bool ZoomLayer::init(CCNode* sceneLayer) {
 	this->setZOrder(11);
 	sceneLayer->addChild(this);
 	this->setKeypadEnabled(true);
+	this->setMouseEnabled(true);
 
 	pauseLayer->setVisible(false);
 	setPracticeButtonsVisible(false);
@@ -150,6 +151,7 @@ void ZoomLayer::keyBackClicked() {
 
 void ZoomLayer::close(bool resetView, bool restorePauseLayer) {
 	this->setKeypadEnabled(false);
+	this->setMouseEnabled(false);
 
 	if (resetView) {
 		this->resetView();

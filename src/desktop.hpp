@@ -7,11 +7,11 @@ using namespace geode::prelude;
 
 class WindowsZoomManager {
 public:
-	CCPoint lastMousePos;
-	CCPoint deltaMousePos;
+	CCPoint lastMousePos = ccp(0, 0);
+	CCPoint deltaMousePos = ccp(0, 0);
 
-	bool isPaused;
-	bool isPanning;
+	bool isPaused = false;
+	bool isPanning = false;
 
 	static WindowsZoomManager* get();
 

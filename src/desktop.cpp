@@ -104,13 +104,18 @@ CCPoint WindowsZoomManager::getMousePosOnNode(CCNode* node) {
 }
 
 void WindowsZoomManager::update(float dt) {
+	if (!isPaused) return;
+
+	if (!CCScene::get()->getChildByID("PauseLayer")) {
+		this->onResume();
+		return;
+	}
+
 	auto mousePos = getMousePos();
 	auto lastMousePos = WindowsZoomManager::get()->lastMousePos;
 
 	WindowsZoomManager::get()->deltaMousePos = CCPoint{ mousePos.x - lastMousePos.x, mousePos.y - lastMousePos.y };
 	WindowsZoomManager::get()->lastMousePos = mousePos;
-
-	if (!isPaused) return;
 
 #ifdef GEODE_IS_WINDOWS
 	// GetAsyncKeyState stores the current pressed state in the high-order bit.
@@ -138,6 +143,11 @@ void WindowsZoomManager::onPause() {
 
 void WindowsZoomManager::onScroll(float y, float x) {
 	if (!isPaused) return;
+
+	if (!CCScene::get()->getChildByID("PauseLayer")) {
+		this->onResume();
+		return;
+	}
 
 	CCNode* playLayer = CCScene::get()->getChildByID("PlayLayer");
 	if (!playLayer) return;

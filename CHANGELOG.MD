@@ -1,3 +1,9 @@
+# 1.4.0
+- Updated to Geode 5.6.1 *(Sorry for the delay guys!)*
+- Fixed several mobile issues where buttons stop working after zooming
+- Fixed crashes and weird behaviour when beating or leaving a level while zoomed
+- Fixed crashes when using a Start Position switcher while zoomed in
+
 # 1.3.3
 - Fixed compatibility with Better Touch Priority (Shout out [undefined0](https://github.com/undefined06855) for the help)
 

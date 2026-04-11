@@ -4,8 +4,6 @@
 #include "desktop.hpp"
 #include "settings.hpp"
 
-#include <geode.custom-keybinds/include/Keybinds.hpp>
-
 #include <Geode/Geode.hpp>
 
 #include <Geode/modify/PauseLayer.hpp>
@@ -19,8 +17,10 @@
 #endif // GEODE_IS_WINDOWS
 #include <Geode/modify/CCScheduler.hpp>
 
+#include <Geode/loader/GameEvent.hpp>
+#include <Geode/loader/SettingV3.hpp>
+
 using namespace geode::prelude;
-using namespace keybinds;
 
 WindowsZoomManager* WindowsZoomManager::get() {
 	static auto inst = new WindowsZoomManager;
@@ -104,13 +104,23 @@ CCPoint WindowsZoomManager::getMousePosOnNode(CCNode* node) {
 }
 
 void WindowsZoomManager::update(float dt) {
+	if (!isPaused) return;
+
+	if (!CCScene::get()->getChildByID("PauseLayer")) {
+		this->onResume();
+		return;
+	}
+
 	auto mousePos = getMousePos();
 	auto lastMousePos = WindowsZoomManager::get()->lastMousePos;
 
 	WindowsZoomManager::get()->deltaMousePos = CCPoint{ mousePos.x - lastMousePos.x, mousePos.y - lastMousePos.y };
 	WindowsZoomManager::get()->lastMousePos = mousePos;
 
-	if (!isPaused) return;
+#ifdef GEODE_IS_WINDOWS
+	// GetAsyncKeyState stores the current pressed state in the high-order bit.
+	isPanning = (GetAsyncKeyState(VK_MBUTTON) & 0x8000) != 0;
+#endif
 
 	if (isPanning) {
 		CCPoint delta = WindowsZoomManager::get()->deltaMousePos;
@@ -133,6 +143,11 @@ void WindowsZoomManager::onPause() {
 
 void WindowsZoomManager::onScroll(float y, float x) {
 	if (!isPaused) return;
+
+	if (!CCScene::get()->getChildByID("PauseLayer")) {
+		this->onResume();
+		return;
+	}
 
 	CCNode* playLayer = CCScene::get()->getChildByID("PlayLayer");
 	if (!playLayer) return;
@@ -173,13 +188,16 @@ void WindowsZoomManager::onScreenModified() {
 
 class $modify(PauseLayer) {
 	void customSetup() {
-		this->template addEventListener<InvokeBindFilter>([=](InvokeBindEvent* event) {
-			if (event->isDown()) {
-				WindowsZoomManager::get()->togglePauseMenu();
-			}
+		this->addEventListener(
+            KeybindSettingPressedEventV3(Mod::get(), "toggle-menu"),
+            [this](Keybind const& keybind, bool down, bool repeat, double timestamp) {
+                if (down) {
+					WindowsZoomManager::get()->togglePauseMenu();
+				}
 
-			return ListenerResult::Propagate;
-		}, "toggle_menu"_spr);
+				return ListenerResult::Propagate;
+            }
+        );
 
 		PauseLayer::customSetup();
 	}
@@ -234,22 +252,7 @@ class $modify(CCScheduler) {
 	}
 };
 
-#ifdef GEODE_IS_WINDOWS
-class $modify(CCEGLView) {
-	void onGLFWMouseCallBack(GLFWwindow* window, int button, int action, int mods) {
-		if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
-			if (action == GLFW_PRESS) {
-				WindowsZoomManager::get()->isPanning = true;
-			}
-			else if (action == GLFW_RELEASE) {
-				WindowsZoomManager::get()->isPanning = false;
-			}
-		}
-
-		CCEGLView::onGLFWMouseCallBack(window, button, action, mods);
-	}
-};
-#else
+#ifndef GEODE_IS_WINDOWS
 void otherMouseDownHook(void* self, SEL sel, void* event) {
 	WindowsZoomManager::get()->isPanning = true;
 	reinterpret_cast<void(*)(void*, SEL, void*)>(objc_msgSend)(self, sel, event);

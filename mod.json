@@ -1,14 +1,14 @@
 {
-	"geode": "4.9.0",
+	"geode": "5.6.1",
 	"gd": {
-		"win": "2.2074",
-		"android": "2.2074",
-		"mac": "2.2074",
-		"ios": "2.2074"
+		"win": "2.2081",
+		"android": "2.2081",
+		"mac": "2.2081",
+		"ios": "2.2081"
 	},
 	"id": "bobby_shmurner.zoom",
 	"name": "Zoooom!",
-	"version": "1.3.3",
+	"version": "1.4.0",
 	"developer": "Bobby Shmurner",
 	"description": "Allows you to zoom while paused!",
 	"links": {
@@ -16,13 +16,8 @@
 	},
 	"dependencies": {
 		"geode.node-ids": {
-			"version": ">=v1.20.1",
+			"version": ">=v1.23.3",
 			"importance": "required"
-		},
-		"geode.custom-keybinds": {
-			"version": ">=v1.10.3",
-			"importance": "required",
-			"platforms": ["win", "mac"]
 		}
 	},
 	"resources": {
@@ -47,6 +42,13 @@
 			"control": {
 				"slider": true
 			},
+			"platforms": ["win", "mac"]
+		},
+		"toggle-menu": {
+			"name": "Toggle Menu",
+			"description": "Press to manually toggle the visibility of the pause menu.",
+			"type": "keybind",
+			"default": "Home",
 			"platforms": ["win", "mac"]
 		},
 		"auto-hide-menu": {

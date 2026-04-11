@@ -6,14 +6,15 @@
 
 #include <algorithm>
 #include <Geode/modify/PauseLayer.hpp>
+#include <Geode/modify/PlayLayer.hpp>
 
 using namespace geode::prelude;
 AndroidZoomLayer* AndroidZoomLayer::instance = nullptr;
 
 AndroidZoomLayer* AndroidZoomLayer::create(CCNode* sceneLayer) {
 	if (instance) {
-		instance = nullptr;
-		geode::log::info("AndroidZoomLayer already exists, deleting it!");
+		geode::log::info("AndroidZoomLayer already exists, closing it first.");
+		closeActive(false, false);
 	}
 
 	auto layer = new AndroidZoomLayer();
@@ -25,6 +26,12 @@ AndroidZoomLayer* AndroidZoomLayer::create(CCNode* sceneLayer) {
 
 	delete layer;
 	return nullptr;
+}
+
+void AndroidZoomLayer::closeActive(bool resetView, bool restorePauseLayer) {
+	if (instance) {
+		instance->close(resetView, restorePauseLayer);
+	}
 }
 
 bool AndroidZoomLayer::init(CCNode* sceneLayer) {
@@ -41,34 +48,30 @@ bool AndroidZoomLayer::init(CCNode* sceneLayer) {
 		return false;
 	}
 
-	m_sceneLayer = sceneLayer;
-	m_sceneLayer->addChild(this);
+	sceneLayer->addChild(this);
 
-	m_playLayer = m_sceneLayer->getChildByID("PlayLayer");
-
-	if (!m_playLayer) {
+	if (!this->getPlayLayer()) {
 		geode::log::error("PlayLayer is null!");
 		return false;
 	}
 
-	m_pauseLayer = m_sceneLayer->getChildByID("PauseLayer");
-	if (!m_pauseLayer) {
+	if (!this->getPauseLayer()) {
 		geode::log::error("PauseLayer is null!");
 		return false;
 	}
 
-	m_pauseLayer->setVisible(false);
+	this->getPauseLayer()->setVisible(false);
 
 	// Thanks SillyDoggo for the code snippet :D
 	// https://github.com/TheSillyDoggo/GeodeMenu/blob/17b19215b80a263379a560edfaf63c2a3f17e2f8/src/Client/AndroidUI.cpp#L28
 
-	auto backMenu = CCMenu::create();
-	backMenu->ignoreAnchorPointForPosition(false);
-	backMenu->setContentSize(ccp(0, 0));
-	backMenu->setPositionX(0);
-	backMenu->setPositionY(CCDirector::get()->getWinSize().height);
-	backMenu->setID("back-menu");
-	this->addChild(backMenu);
+	m_backMenu = CCMenu::create();
+	m_backMenu->ignoreAnchorPointForPosition(false);
+	m_backMenu->setContentSize(ccp(0, 0));
+	m_backMenu->setPositionX(0);
+	m_backMenu->setPositionY(CCDirector::get()->getWinSize().height);
+	m_backMenu->setID("back-menu");
+	this->addChild(m_backMenu);
 
 	auto backSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_03_001.png");
 	backSpr->setOpacity(100);
@@ -77,27 +80,81 @@ bool AndroidZoomLayer::init(CCNode* sceneLayer) {
 	backBtn->setPosition(ccp(24, -23));
 	backBtn->setSizeMult(1.15f);
 
-	backMenu->addChild(backBtn);
+	m_backMenu->addChild(backBtn);
 
 	this->setID("AndroidZoomLayer"_spr);
     this->setZOrder(11); // One above PauseLayer
 
-	CCDirector::sharedDirector()->getTouchDispatcher()->addTargetedDelegate(this, -250, true);
+	this->setTouchPriority(-250);
 	this->setTouchEnabled(true);
 
-	backMenu->setTouchPriority(CCDirector::sharedDirector()->getTouchDispatcher()->getTargetPrio());
-	CCDirector::sharedDirector()->getTouchDispatcher()->registerForcePrio(backMenu, 2);
+	m_backMenu->setTouchPriority(CCDirector::sharedDirector()->getTouchDispatcher()->getTargetPrio());
+	CCDirector::sharedDirector()->getTouchDispatcher()->registerForcePrio(m_backMenu, 2);
 
 	geode::log::info("AndroidZoomLayer initialized!");
 	return true;
 }
 
+CCNode* AndroidZoomLayer::getSceneLayer() {
+	return this->getParent();
+}
+
+CCNode* AndroidZoomLayer::getPlayLayer() {
+	if (auto sceneLayer = this->getSceneLayer()) {
+		return sceneLayer->getChildByID("PlayLayer");
+	}
+	return nullptr;
+}
+
+CCNode* AndroidZoomLayer::getPauseLayer() {
+	if (auto sceneLayer = this->getSceneLayer()) {
+		return sceneLayer->getChildByID("PauseLayer");
+	}
+	return nullptr;
+}
+
+void AndroidZoomLayer::registerWithTouchDispatcher() {
+	CCDirector::sharedDirector()->getTouchDispatcher()->addTargetedDelegate(this, this->getTouchPriority(), true);
+}
+
+void AndroidZoomLayer::onExit() {
+	if (m_backMenu) {
+		CCTouchDispatcher::get()->unregisterForcePrio(m_backMenu);
+		m_backMenu = nullptr;
+	}
+
+	m_touches.clear();
+	m_isZooming = false;
+	m_ZoomAnchor = ccp(0, 0);
+
+	if (AndroidZoomLayer::instance == this) {
+		AndroidZoomLayer::instance = nullptr;
+	}
+
+	CCLayer::onExit();
+}
+
+void AndroidZoomLayer::close(bool resetView, bool restorePauseLayer) {
+	if (resetView) {
+		if (auto playLayer = this->getPlayLayer()) {
+			playLayer->setScale(1.0f);
+			playLayer->setPosition(ccp(0, 0));
+		}
+	}
+
+	if (restorePauseLayer) {
+		if (auto pauseLayer = this->getPauseLayer()) {
+			pauseLayer->setVisible(true);
+		}
+	}
+
+	if (this->getParent()) {
+		this->removeFromParentAndCleanup(true);
+	}
+}
+
 void AndroidZoomLayer::onBackButton(CCObject* sender) {
-	m_playLayer->setScale(1.0f);
-	m_playLayer->setPosition(ccp(0, 0));
-	m_pauseLayer->setVisible(true);
-	this->removeFromParentAndCleanup(true);
-	AndroidZoomLayer::instance = nullptr;
+	this->close(true, true);
 }
 
 bool AndroidZoomLayer::ccTouchBegan(CCTouch* pTouch, CCEvent* pEvent) {
@@ -111,12 +168,18 @@ bool AndroidZoomLayer::ccTouchBegan(CCTouch* pTouch, CCEvent* pEvent) {
 }
 
 void AndroidZoomLayer::ccTouchMoved(CCTouch* pTouch, CCEvent* pEvent) {
+	auto playLayer = this->getPlayLayer();
+	if (!playLayer) {
+		this->close(false, false);
+		return;
+	}
+
 	if (m_touches.size() == 1) {
 		CCTouch* touch = m_touches[0];
 		CCPoint delta = touch->getDelta();
-		CCPoint pos = m_playLayer->getPosition();
-		m_playLayer->setPosition(pos.x + delta.x, pos.y + delta.y);
-		clampPlayLayerPos(m_playLayer);
+		CCPoint pos = playLayer->getPosition();
+		playLayer->setPosition(pos.x + delta.x, pos.y + delta.y);
+		clampPlayLayerPos(playLayer);
 	} else {
 		if (!m_isZooming) return;
 
@@ -136,15 +199,15 @@ void AndroidZoomLayer::ccTouchMoved(CCTouch* pTouch, CCEvent* pEvent) {
 		m_ZoomAnchor = newAnchor;
 
 		// Move the play layer based on the delta of the anchor point
-		CCPoint pos = m_playLayer->getPosition();
-		m_playLayer->setPosition(pos.x + deltaAnchor.x, pos.y + deltaAnchor.y);
+		CCPoint pos = playLayer->getPosition();
+		playLayer->setPosition(pos.x + deltaAnchor.x, pos.y + deltaAnchor.y);
 
 		CCPoint delta = movingTouch->getDelta();
 		CCPoint touchDisplacement = ccpSub(movingTouch->getLocation(), anchoredTouch->getLocation());
 		float scaleDelta = touchDisplacement.normalize().dot(delta) / 100.0f;
 
-		zoomPlayLayer(m_playLayer, scaleDelta, m_ZoomAnchor);
-		clampPlayLayerPos(m_playLayer);
+		zoomPlayLayer(playLayer, scaleDelta, m_ZoomAnchor);
+		clampPlayLayerPos(playLayer);
 	}
 }
 
@@ -194,6 +257,23 @@ class $modify(AndroidZoomPauseLayer, PauseLayer) {
 
 	void onZoomButton(CCObject* sender) {
 		AndroidZoomLayer::create(this->getParent());
+	}
+};
+
+class $modify(AndroidZoomPlayLayer, PlayLayer) {
+	void levelComplete() {
+		AndroidZoomLayer::closeActive(false, false);
+		PlayLayer::levelComplete();
+	}
+
+	void onQuit() {
+		AndroidZoomLayer::closeActive(false, false);
+		PlayLayer::onQuit();
+	}
+
+	void onExit() {
+		AndroidZoomLayer::closeActive(false, false);
+		PlayLayer::onExit();
 	}
 };
 

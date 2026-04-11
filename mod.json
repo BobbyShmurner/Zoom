@@ -38,8 +38,8 @@
       "platforms": ["win", "mac"]
     },
     "toggle-menu": {
-      "name": "Toggle Menu",
-      "description": "Press to manually toggle the visibility of the pause menu.",
+      "name": "Toggle Zoom UI",
+      "description": "Open or close the zoom controls while paused. Closing the controls keeps your current zoom.",
       "type": "keybind",
       "default": "Home",
       "platforms": ["win", "mac"]

@@ -96,14 +96,22 @@ WindowsZoomManager* WindowsZoomManager::get() {
 	return inst;
 }
 
-void WindowsZoomManager::togglePauseMenu() {
+void WindowsZoomManager::toggleZoomUI() {
 	if (hasBlockingPausePopup()) {
 		return;
 	}
 
 	if (auto zoomLayer = ZoomLayer::get()) {
-		zoomLayer->togglePauseMenu();
+		zoomLayer->close(false, true);
+		return;
 	}
+
+	auto scene = CCScene::get();
+	if (!scene || !scene->getChildByID("PauseLayer")) {
+		return;
+	}
+
+	ZoomLayer::create(scene);
 }
 
 void WindowsZoomManager::onMouseInput(MouseInputData const& input) {
@@ -233,7 +241,7 @@ class $modify(DesktopZoomPauseLayer, PauseLayer) {
 			KeybindSettingPressedEventV3(Mod::get(), "toggle-menu"),
 			[this](Keybind const& keybind, bool down, bool repeat, double timestamp) {
 				if (down && !repeat) {
-					WindowsZoomManager::get()->togglePauseMenu();
+					WindowsZoomManager::get()->toggleZoomUI();
 				}
 
 					return ListenerResult::Propagate;

@@ -30,6 +30,21 @@ namespace {
 			uiLayer->toggleCheckpointsMenu(visible);
 		}
 	}
+
+	void resetSceneView(CCNode* sceneLayer) {
+		if (auto playLayer = sceneLayer ? sceneLayer->getChildByID("PlayLayer") : nullptr) {
+			playLayer->setScale(1.0f);
+			playLayer->setPosition(ccp(0, 0));
+		}
+	}
+
+	void setScenePauseMenuVisible(CCNode* sceneLayer, bool visible) {
+		if (auto pauseLayer = sceneLayer ? sceneLayer->getChildByID("PauseLayer") : nullptr) {
+			pauseLayer->setVisible(visible);
+		}
+
+		setPracticeButtonsVisible(visible);
+	}
 }
 
 ZoomLayer* ZoomLayer::get() {
@@ -63,6 +78,22 @@ ZoomLayer* ZoomLayer::create(CCNode* sceneLayer) {
 void ZoomLayer::closeActive(bool resetView, bool restorePauseLayer) {
 	if (auto layer = ZoomLayer::get()) {
 		layer->close(resetView, restorePauseLayer);
+		return;
+	}
+
+	auto sceneLayer = CCScene::get();
+	if (!sceneLayer) {
+		return;
+	}
+
+	// The zoom transform can outlive the UI, so lifecycle exits still need a
+	// fallback path that restores the paused view even after the layer is gone.
+	if (resetView) {
+		resetSceneView(sceneLayer);
+	}
+
+	if (restorePauseLayer) {
+		setScenePauseMenuVisible(sceneLayer, true);
 	}
 }
 
@@ -94,8 +125,7 @@ bool ZoomLayer::init(CCNode* sceneLayer) {
 	this->setKeypadEnabled(true);
 	this->setMouseEnabled(true);
 
-	pauseLayer->setVisible(false);
-	setPracticeButtonsVisible(false);
+	setScenePauseMenuVisible(sceneLayer, false);
 
 	m_backMenu = CCMenu::create();
 	m_backMenu->ignoreAnchorPointForPosition(false);
@@ -146,7 +176,7 @@ void ZoomLayer::onExit() {
 }
 
 void ZoomLayer::keyBackClicked() {
-	this->close(true, true);
+	this->close(false, true);
 }
 
 void ZoomLayer::close(bool resetView, bool restorePauseLayer) {
@@ -154,11 +184,11 @@ void ZoomLayer::close(bool resetView, bool restorePauseLayer) {
 	this->setMouseEnabled(false);
 
 	if (resetView) {
-		this->resetView();
+		resetSceneView(this->getSceneLayer());
 	}
 
 	if (restorePauseLayer) {
-		this->setPauseMenuVisible(true);
+		setScenePauseMenuVisible(this->getSceneLayer(), true);
 	}
 	else {
 		setPracticeButtonsVisible(true);
@@ -170,24 +200,11 @@ void ZoomLayer::close(bool resetView, bool restorePauseLayer) {
 }
 
 void ZoomLayer::resetView() {
-	if (auto playLayer = this->getPlayLayer()) {
-		playLayer->setScale(1.0f);
-		playLayer->setPosition(ccp(0, 0));
-	}
+	resetSceneView(this->getSceneLayer());
 }
 
 void ZoomLayer::setPauseMenuVisible(bool visible) {
-	if (auto pauseLayer = this->getPauseLayer()) {
-		pauseLayer->setVisible(visible);
-	}
-
-	setPracticeButtonsVisible(visible);
-}
-
-void ZoomLayer::togglePauseMenu() {
-	if (auto pauseLayer = this->getPauseLayer()) {
-		this->setPauseMenuVisible(!pauseLayer->isVisible());
-	}
+	setScenePauseMenuVisible(this->getSceneLayer(), visible);
 }
 
 void ZoomLayer::panBy(CCPoint delta) {
@@ -241,7 +258,7 @@ CCNode* ZoomLayer::getPauseLayer() {
 }
 
 void ZoomLayer::onBackButton(CCObject* sender) {
-	this->close(true, true);
+	this->close(false, true);
 }
 
 #ifdef GEODE_IS_MOBILE

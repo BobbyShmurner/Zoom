@@ -18,10 +18,9 @@ public:
 	void onExit() override;
 	void keyBackClicked() override;
 
-	void close(bool resetView = true, bool restorePauseLayer = true);
+	void close(bool resetView = false, bool restorePauseLayer = true);
 	void resetView();
 	void setPauseMenuVisible(bool visible);
-	void togglePauseMenu();
 	void panBy(CCPoint delta);
 	void zoomBy(float delta, CCPoint screenAnchor);
 	float getZoom();

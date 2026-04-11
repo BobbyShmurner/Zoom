@@ -20,7 +20,7 @@ public:
 	static WindowsZoomManager* get();
 
 	void update(float dt);
-	void togglePauseMenu();
+	void toggleZoomUI();
 	void onMouseInput(MouseInputData const& input);
 	void onScroll(float y, float x);
 	void onZoomKey(bool zoomIn);

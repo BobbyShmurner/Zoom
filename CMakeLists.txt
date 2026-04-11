@@ -14,6 +14,7 @@ project(Zoom VERSION 1.4.0)
 add_library(${PROJECT_NAME} SHARED
 	src/main.cpp
 	src/utils.cpp
+	src/zoom_layer.cpp
 	src/desktop.cpp
 	src/mobile.cpp
 	src/settings.cpp

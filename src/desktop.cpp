@@ -6,6 +6,7 @@
 #include "zoom_layer.hpp"
 
 #include <Geode/Geode.hpp>
+#include <Geode/binding/FLAlertLayer.hpp>
 
 #include <Geode/modify/PauseLayer.hpp>
 #include <Geode/modify/CCKeyboardDispatcher.hpp>
@@ -22,6 +23,39 @@ namespace {
 	CCPoint getScreenCenter() {
 		auto screenSize = getScreenSize();
 		return ccp(screenSize.width * 0.5f, screenSize.height * 0.5f);
+	}
+
+	bool hasVisibleBlockingPopup(CCNode* node) {
+		if (!node || !node->isVisible()) {
+			return false;
+		}
+
+		if (typeinfo_cast<FLAlertLayer*>(node)) {
+			return true;
+		}
+
+		for (auto child : CCArrayExt<CCNode*>(node->getChildren())) {
+			if (hasVisibleBlockingPopup(child)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	bool hasBlockingPausePopup() {
+		auto scene = CCScene::get();
+		if (!scene) {
+			return false;
+		}
+
+		for (auto child : CCArrayExt<CCNode*>(scene->getChildren())) {
+			if (hasVisibleBlockingPopup(child)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	ZoomLayer* getPausedZoomLayer(bool createIfMissing) {
@@ -63,6 +97,10 @@ WindowsZoomManager* WindowsZoomManager::get() {
 }
 
 void WindowsZoomManager::togglePauseMenu() {
+	if (hasBlockingPausePopup()) {
+		return;
+	}
+
 	if (auto zoomLayer = ZoomLayer::get()) {
 		zoomLayer->togglePauseMenu();
 	}
@@ -120,6 +158,10 @@ void WindowsZoomManager::update(float dt) {
 	deltaMousePos = ccpSub(mousePos, lastMousePos);
 	lastMousePos = mousePos;
 
+	if (hasBlockingPausePopup()) {
+		return;
+	}
+
 	auto zoomLayer = getPausedZoomLayer(false);
 	if (!zoomLayer || zoomLayer->getZoom() <= kClosedZoomThreshold) {
 		return;
@@ -136,6 +178,10 @@ void WindowsZoomManager::onScroll(float y, float x) {
 		if (kb->getAltKeyPressed()) {
 			return;
 		}
+	}
+
+	if (hasBlockingPausePopup()) {
+		return;
 	}
 
 	auto zoomLayer = getPausedZoomLayer(true);
@@ -162,6 +208,10 @@ void WindowsZoomManager::onZoomKey(bool zoomIn) {
 		if (kb->getAltKeyPressed()) {
 			return;
 		}
+	}
+
+	if (hasBlockingPausePopup()) {
+		return;
 	}
 
 	auto zoomLayer = getPausedZoomLayer(zoomIn);

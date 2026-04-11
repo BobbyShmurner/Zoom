@@ -19,11 +19,6 @@
 
 using namespace geode::prelude;
 
-float clamp(float d, float min, float max) {
-	const float t = d < min ? min : d;
-	return t > max ? max : t;
-}
-
 $execute {
 	geode::log::info("Zoom mod loaded!");
 	geode::log::info("Platform: " GEODE_PLATFORM_NAME);

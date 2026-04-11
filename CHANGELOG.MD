@@ -4,6 +4,9 @@
 - Fixed crashes and weird behaviour when beating or leaving a level while zoomed
 - Fixed crashes when using a Start Position switcher while zoomed in
 
+Sorry again for the delays, I'll be back to supporting the mod more often again.
+Thank you all for your support and your patients :D
+
 # 1.3.3
 - Fixed compatibility with Better Touch Priority (Shout out [undefined0](https://github.com/undefined06855) for the help)
 

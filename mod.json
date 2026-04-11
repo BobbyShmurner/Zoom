@@ -48,7 +48,8 @@
 			"name": "Toggle Menu",
 			"description": "Press to manually toggle the visibility of the pause menu.",
 			"type": "keybind",
-			"default": "Home"
+			"default": "Home",
+			"platforms": ["win", "mac"]
 		},
 		"auto-hide-menu": {
 			"name": "Auto Hide Menu",

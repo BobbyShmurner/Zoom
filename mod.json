@@ -44,17 +44,45 @@
 			},
 			"platforms": ["win", "mac"]
 		},
-		"toggle-menu": {
-			"name": "Toggle Menu",
-			"description": "Press to manually toggle the visibility of the pause menu.",
-			"type": "keybind",
-			"default": "Home",
-			"platforms": ["win", "mac"]
-		},
-		"auto-hide-menu": {
-			"name": "Auto Hide Menu",
-			"description": "Automatically hides the menu when you zoom in.",
-			"type": "bool",
+			"toggle-menu": {
+				"name": "Toggle Menu",
+				"description": "Press to manually toggle the visibility of the pause menu.",
+				"type": "keybind",
+				"default": "Home",
+				"platforms": ["win", "mac"]
+			},
+			"zoom-in": {
+				"name": "Zoom In",
+				"description": "Press to zoom in while paused.",
+				"type": "keybind",
+				"default": [],
+				"platforms": ["win", "mac"]
+			},
+			"zoom-out": {
+				"name": "Zoom Out",
+				"description": "Press to zoom back out while paused.",
+				"type": "keybind",
+				"default": [],
+				"platforms": ["win", "mac"]
+			},
+			"pan-button": {
+				"name": "Pan Button",
+				"description": "Choose which mouse button pans the zoomed view on PC.",
+				"type": "string",
+				"default": "Middle Click",
+				"one-of": [
+					"Left Click",
+					"Right Click",
+					"Middle Click",
+					"Mouse Button 4",
+					"Mouse Button 5"
+				],
+				"platforms": ["win", "mac"]
+			},
+			"auto-hide-menu": {
+				"name": "Auto Hide Menu",
+				"description": "Automatically hides the menu when you zoom in.",
+				"type": "bool",
 			"default": true,
 			"platforms": ["win", "mac"]
 		},

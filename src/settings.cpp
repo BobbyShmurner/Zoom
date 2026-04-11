@@ -5,6 +5,26 @@
 
 using namespace geode::prelude;
 
+#ifdef GEODE_IS_DESKTOP
+namespace {
+	PanMouseButton panMouseButtonFromSetting(std::string_view value) {
+		if (value == "Left Click") {
+			return PanMouseButton::Left;
+		}
+		if (value == "Right Click") {
+			return PanMouseButton::Right;
+		}
+		if (value == "Mouse Button 4") {
+			return PanMouseButton::Button4;
+		}
+		if (value == "Mouse Button 5") {
+			return PanMouseButton::Button5;
+		}
+		return PanMouseButton::Middle;
+	}
+}
+#endif
+
 SettingsManager* SettingsManager::get() {
 	static auto inst = new SettingsManager;
 	return inst;
@@ -30,6 +50,11 @@ void SettingsManager::init() {
 	zoomSensitivity = Mod::get()->getSettingValue<float>("zoom-sensitivity");
 	listenForSettingChanges<float>("zoom-sensitivity", [&](float sensitivity) {
 		zoomSensitivity = sensitivity;
+	});
+
+	panMouseButton = panMouseButtonFromSetting(Mod::get()->getSettingValue<std::string>("pan-button"));
+	listenForSettingChanges<std::string>("pan-button", [&](std::string button) {
+		panMouseButton = panMouseButtonFromSetting(button);
 	});
 
 	#endif // GEODE_IS_DESKTOP

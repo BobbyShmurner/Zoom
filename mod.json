@@ -25,6 +25,11 @@
   },
   "tags": ["enhancement", "interface", "offline", "utility"],
   "settings": {
+    "basic-title": {
+      "type": "title",
+      "name": "Basic Settings",
+      "description": "The most common settings for zooming."
+    },
     "zoom-sensitivity": {
       "name": "Zoom Sensitivity",
       "description": "The zoom sensitivity. Higher values zoom in faster.",
@@ -35,6 +40,45 @@
       "control": {
         "slider": true
       },
+      "platforms": ["win", "mac"]
+    },
+    "hide-practice-buttons": {
+      "name": "Hide Practice Buttons",
+      "description": "Hide the practice checkpoint buttons while zooming.",
+      "type": "bool",
+      "default": true
+    },
+    "advanced-title": {
+      "type": "title",
+      "name": "Advanced Settings",
+      "description": "Advanced options for fine-tuning the zooming experience.",
+      "platforms": ["win", "mac"]
+    },
+    "auto-hide-menu": {
+      "name": "Auto Hide Menu",
+      "description": "Automatically hides the menu when you zoom in.",
+      "type": "bool",
+      "default": true,
+      "platforms": ["win", "mac"]
+    },
+    "auto-show-menu": {
+      "name": "Auto Show Menu",
+      "description": "Automatically shows the menu when you zoom back out.",
+      "type": "bool",
+      "default": true,
+      "platforms": ["win", "mac"]
+    },
+    "alt-disables-zoom": {
+      "name": "Alt Disables Zoom",
+      "description": "Disables zooming while Alt is held.",
+      "type": "bool",
+      "default": true,
+      "platforms": ["win", "mac"]
+    },
+    "controls-title": {
+      "type": "title",
+      "name": "Controls",
+      "description": "Settings for the controls and keybinds.",
       "platforms": ["win", "mac"]
     },
     "toggle-menu": {
@@ -72,12 +116,6 @@
       ],
       "platforms": ["win", "mac"]
     },
-    "hide-practice-buttons": {
-      "name": "Hide Practice Buttons",
-      "description": "Hide the practice checkpoint buttons while zooming.",
-      "type": "bool",
-      "default": true
-    },
     "minimap-title": {
       "type": "title",
       "name": "Minimap",
@@ -101,11 +139,6 @@
       },
       "enable-if": "enable-minimap",
       "enable-if-description": "Only available while the minimap is enabled."
-    },
-    "minimap-colors-title": {
-      "type": "title",
-      "name": "Minimap Colors",
-      "description": "Choose separate fill and outline colors for the minimap."
     },
     "minimap-outer-fill-color": {
       "name": "Outer Fill Color",
@@ -138,27 +171,6 @@
       "default": [255, 0, 0, 179],
       "enable-if": "enable-minimap",
       "enable-if-description": "Only available while the minimap is enabled."
-    },
-    "auto-hide-menu": {
-      "name": "Auto Hide Menu",
-      "description": "Automatically hides the menu when you zoom in.",
-      "type": "bool",
-      "default": true,
-      "platforms": ["win", "mac"]
-    },
-    "auto-show-menu": {
-      "name": "Auto Show Menu",
-      "description": "Automatically shows the menu when you zoom back out.",
-      "type": "bool",
-      "default": true,
-      "platforms": ["win", "mac"]
-    },
-    "alt-disables-zoom": {
-      "name": "Alt Disables Zoom",
-      "description": "Disables zooming while Alt is held.",
-      "type": "bool",
-      "default": true,
-      "platforms": ["win", "mac"]
     }
   }
 }

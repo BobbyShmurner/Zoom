@@ -19,6 +19,7 @@ public:
 	void init();
 
 	bool hidePracticeButtons = true;
+	float zoomSensitivity = 1.0f;
 	bool enableMinimap = true;
 	float minimapScale = 1.0f;
 	cocos2d::ccColor4B minimapOuterFillColor = { 235, 235, 235, 96 };
@@ -27,10 +28,9 @@ public:
 	cocos2d::ccColor4B minimapInnerOutlineColor = { 255, 26, 26, 96 };
 
 	#ifdef GEODE_IS_DESKTOP
-	bool autoHideMenu;
-	bool autoShowMenu;
-	bool altDisablesZoom;
-	float zoomSensitivity;
-	PanMouseButton panMouseButton = PanMouseButton::Middle;
-	#endif
-};
+		bool autoHideMenu;
+		bool autoShowMenu;
+		bool altDisablesZoom;
+		PanMouseButton panMouseButton = PanMouseButton::Middle;
+		#endif
+	};

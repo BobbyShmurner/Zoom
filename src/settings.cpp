@@ -36,6 +36,11 @@ void SettingsManager::init() {
 		hidePracticeButtons = enable;
 	});
 
+	zoomSensitivity = Mod::get()->getSettingValue<float>("zoom-sensitivity");
+	listenForSettingChanges<float>("zoom-sensitivity", [&](float sensitivity) {
+		zoomSensitivity = sensitivity;
+	});
+
 	enableMinimap = Mod::get()->getSettingValue<bool>("enable-minimap");
 	listenForSettingChanges<bool>("enable-minimap", [&](bool enable) {
 		enableMinimap = enable;
@@ -80,11 +85,6 @@ void SettingsManager::init() {
 	altDisablesZoom = Mod::get()->getSettingValue<bool>("alt-disables-zoom");
 	listenForSettingChanges<bool>("alt-disables-zoom", [&](bool enable) {
 		altDisablesZoom = enable;
-	});
-
-	zoomSensitivity = Mod::get()->getSettingValue<float>("zoom-sensitivity");
-	listenForSettingChanges<float>("zoom-sensitivity", [&](float sensitivity) {
-		zoomSensitivity = sensitivity;
 	});
 
 	panMouseButton = panMouseButtonFromSetting(Mod::get()->getSettingValue<std::string>("pan-button"));

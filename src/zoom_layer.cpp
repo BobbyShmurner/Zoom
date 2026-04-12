@@ -430,6 +430,7 @@ void ZoomLayer::ccTouchMoved(CCTouch* touch, CCEvent* event) {
 	auto delta = movingTouch->getDelta();
 	auto touchDisplacement = ccpSub(movingTouch->getLocation(), anchoredTouch->getLocation());
 	auto scaleDelta = touchDisplacement.normalize().dot(delta) / 100.0f;
+	scaleDelta *= SettingsManager::get()->zoomSensitivity;
 
 	this->zoomBy(scaleDelta, m_zoomAnchor);
 }

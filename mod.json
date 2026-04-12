@@ -32,15 +32,14 @@
     },
     "zoom-sensitivity": {
       "name": "Zoom Sensitivity",
-      "description": "The zoom sensitivity. Higher values zoom in faster.",
+      "description": "How quickly zoom responds. Higher values make scroll, keybind, and pinch zoom faster.",
       "type": "float",
       "default": 1,
       "min": 0,
       "max": 10,
       "control": {
         "slider": true
-      },
-      "platforms": ["win", "mac"]
+      }
     },
     "hide-practice-buttons": {
       "name": "Hide Practice Buttons",

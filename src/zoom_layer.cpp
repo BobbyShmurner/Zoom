@@ -146,6 +146,7 @@ bool ZoomLayer::init(CCNode* sceneLayer) {
 	backButton->setSizeMult(1.15f);
 	backButton->setID("back-button"_spr);
 	m_backMenu->addChild(backButton);
+	m_backMenu->setVisible(SettingsManager::get()->showBackButton);
 
 	m_minimapMenu = CCNode::create();
 	m_minimapMenu->ignoreAnchorPointForPosition(false);
@@ -173,6 +174,9 @@ bool ZoomLayer::init(CCNode* sceneLayer) {
 
 void ZoomLayer::update(float dt) {
 	CCLayer::update(dt);
+	if (m_backMenu) {
+		m_backMenu->setVisible(SettingsManager::get()->showBackButton);
+	}
 	this->updateMinimap();
 }
 
@@ -467,6 +471,12 @@ void addZoomButtonToPauseLayer(CCNode* pauseLayer, CCObject* target, SEL_MenuHan
 	if (!pauseLayer) {
 		return;
 	}
+
+	#ifdef GEODE_IS_DESKTOP
+	if (!SettingsManager::get()->showZoomMenuButton) {
+		return;
+	}
+	#endif
 
 	auto rightButtonMenu = pauseLayer->getChildByID("right-button-menu");
 	if (!rightButtonMenu || rightButtonMenu->getChildByID("zoom-button"_spr)) {

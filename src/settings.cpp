@@ -41,6 +41,11 @@ void SettingsManager::init() {
 		zoomSensitivity = sensitivity;
 	});
 
+	showBackButton = Mod::get()->getSettingValue<bool>("show-back-button");
+	listenForSettingChanges<bool>("show-back-button", [&](bool enable) {
+		showBackButton = enable;
+	});
+
 	enableMinimap = Mod::get()->getSettingValue<bool>("enable-minimap");
 	listenForSettingChanges<bool>("enable-minimap", [&](bool enable) {
 		enableMinimap = enable;
@@ -85,6 +90,11 @@ void SettingsManager::init() {
 	altDisablesZoom = Mod::get()->getSettingValue<bool>("alt-disables-zoom");
 	listenForSettingChanges<bool>("alt-disables-zoom", [&](bool enable) {
 		altDisablesZoom = enable;
+	});
+
+	showZoomMenuButton = Mod::get()->getSettingValue<bool>("show-zoom-menu-button");
+	listenForSettingChanges<bool>("show-zoom-menu-button", [&](bool enable) {
+		showZoomMenuButton = enable;
 	});
 
 	panMouseButton = panMouseButtonFromSetting(Mod::get()->getSettingValue<std::string>("pan-button"));

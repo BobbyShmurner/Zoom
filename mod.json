@@ -50,7 +50,19 @@
     "advanced-title": {
       "type": "title",
       "name": "Advanced Settings",
-      "description": "Advanced options for fine-tuning the zooming experience.",
+      "description": "Advanced options for fine-tuning the zooming experience."
+    },
+    "show-back-button": {
+      "name": "Show Back Button",
+      "description": "Show the back button inside the zoom menu.",
+      "type": "bool",
+      "default": true
+    },
+    "show-zoom-menu-button": {
+      "name": "Show Zoom Menu Button",
+      "description": "Show the zoom button in the pause menu on desktop.",
+      "type": "bool",
+      "default": true,
       "platforms": ["win", "mac"]
     },
     "auto-hide-menu": {

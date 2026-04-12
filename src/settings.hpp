@@ -20,6 +20,7 @@ public:
 
 	bool hidePracticeButtons = true;
 	float zoomSensitivity = 1.0f;
+	bool showBackButton = true;
 	bool enableMinimap = true;
 	float minimapScale = 1.0f;
 	cocos2d::ccColor4B minimapOuterFillColor = { 235, 235, 235, 96 };
@@ -31,6 +32,7 @@ public:
 		bool autoHideMenu;
 		bool autoShowMenu;
 		bool altDisablesZoom;
+		bool showZoomMenuButton = true;
 		PanMouseButton panMouseButton = PanMouseButton::Middle;
-		#endif
-	};
+	#endif
+};

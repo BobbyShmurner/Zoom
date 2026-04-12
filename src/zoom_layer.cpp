@@ -12,7 +12,7 @@ using namespace geode::prelude;
 
 namespace {
 	ZoomLayer* s_activeZoomLayer = nullptr;
-	constexpr float kMinimapMargin = 8.0f;
+	constexpr float kMinimapMargin = 12.0f;
 	constexpr float kMinimapBaseWidth = 112.0f;
 	constexpr float kMinimapBaseHeight = 68.0f;
 	constexpr float kMinimapBorderWidth = 1.5f;

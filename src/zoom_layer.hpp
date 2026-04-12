@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Geode/Geode.hpp>
+#include <Geode/cocos/draw_nodes/CCDrawNode.h>
 
 #ifdef GEODE_IS_MOBILE
 #include <vector>
@@ -15,6 +16,7 @@ public:
 	static void closeActive(bool resetView = true, bool restorePauseLayer = true);
 
 	bool init(CCNode* sceneLayer);
+	void update(float dt) override;
 	void onExit() override;
 	void keyBackClicked() override;
 
@@ -39,6 +41,7 @@ public:
 
 private:
 	void onBackButton(CCObject* sender);
+	void updateMinimap();
 
 #ifdef GEODE_IS_MOBILE
 	void removeTouch(CCTouch* touch);
@@ -47,9 +50,11 @@ private:
 	bool m_isZooming = false;
 	CCPoint m_zoomAnchor = ccp(0, 0);
 	std::vector<CCTouch*> m_touches = {};
-#endif
-
-	CCMenu* m_backMenu = nullptr;
-};
+	#endif
+	
+		CCMenu* m_backMenu = nullptr;
+		CCNode* m_minimapMenu = nullptr;
+		CCDrawNode* m_minimapDrawNode = nullptr;
+	};
 
 void addZoomButtonToPauseLayer(CCNode* pauseLayer, CCObject* target, SEL_MenuHandler callback);

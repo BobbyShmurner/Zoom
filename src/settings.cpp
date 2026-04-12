@@ -36,6 +36,36 @@ void SettingsManager::init() {
 		hidePracticeButtons = enable;
 	});
 
+	enableMinimap = Mod::get()->getSettingValue<bool>("enable-minimap");
+	listenForSettingChanges<bool>("enable-minimap", [&](bool enable) {
+		enableMinimap = enable;
+	});
+
+	minimapScale = Mod::get()->getSettingValue<float>("minimap-scale");
+	listenForSettingChanges<float>("minimap-scale", [&](float scale) {
+		minimapScale = scale;
+	});
+
+	minimapOuterFillColor = Mod::get()->getSettingValue<cocos2d::ccColor4B>("minimap-outer-fill-color");
+	listenForSettingChanges<cocos2d::ccColor4B>("minimap-outer-fill-color", [&](cocos2d::ccColor4B color) {
+		minimapOuterFillColor = color;
+	});
+
+	minimapOuterOutlineColor = Mod::get()->getSettingValue<cocos2d::ccColor4B>("minimap-outer-outline-color");
+	listenForSettingChanges<cocos2d::ccColor4B>("minimap-outer-outline-color", [&](cocos2d::ccColor4B color) {
+		minimapOuterOutlineColor = color;
+	});
+
+	minimapInnerFillColor = Mod::get()->getSettingValue<cocos2d::ccColor4B>("minimap-inner-fill-color");
+	listenForSettingChanges<cocos2d::ccColor4B>("minimap-inner-fill-color", [&](cocos2d::ccColor4B color) {
+		minimapInnerFillColor = color;
+	});
+
+	minimapInnerOutlineColor = Mod::get()->getSettingValue<cocos2d::ccColor4B>("minimap-inner-outline-color");
+	listenForSettingChanges<cocos2d::ccColor4B>("minimap-inner-outline-color", [&](cocos2d::ccColor4B color) {
+		minimapInnerOutlineColor = color;
+	});
+
 	#ifdef GEODE_IS_DESKTOP
 	autoHideMenu = Mod::get()->getSettingValue<bool>("auto-hide-menu");
 	listenForSettingChanges<bool>("auto-hide-menu", [&](bool enable) {

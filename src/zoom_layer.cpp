@@ -6,14 +6,16 @@
 #include <Geode/modify/PauseLayer.hpp>
 #include <Geode/modify/PlayLayer.hpp>
 
-#ifdef GEODE_IS_MOBILE
 #include <algorithm>
-#endif
 
 using namespace geode::prelude;
 
 namespace {
 	ZoomLayer* s_activeZoomLayer = nullptr;
+	constexpr float kMinimapMargin = 8.0f;
+	constexpr float kMinimapBaseWidth = 112.0f;
+	constexpr float kMinimapBaseHeight = 68.0f;
+	constexpr float kMinimapBorderWidth = 1.5f;
 
 	void setPracticeButtonsVisible(bool visible) {
 		if (!SettingsManager::get()->hidePracticeButtons) {
@@ -124,6 +126,7 @@ bool ZoomLayer::init(CCNode* sceneLayer) {
 	sceneLayer->addChild(this);
 	this->setKeypadEnabled(true);
 	this->setMouseEnabled(true);
+	this->scheduleUpdate();
 
 	setScenePauseMenuVisible(sceneLayer, false);
 
@@ -144,6 +147,19 @@ bool ZoomLayer::init(CCNode* sceneLayer) {
 	backButton->setID("back-button"_spr);
 	m_backMenu->addChild(backButton);
 
+	m_minimapMenu = CCNode::create();
+	m_minimapMenu->ignoreAnchorPointForPosition(false);
+	m_minimapMenu->setAnchorPoint(ccp(1.0f, 1.0f));
+	m_minimapMenu->setID("minimap-menu"_spr);
+	this->addChild(m_minimapMenu);
+
+	m_minimapDrawNode = CCDrawNode::create();
+	m_minimapDrawNode->ignoreAnchorPointForPosition(false);
+	m_minimapDrawNode->setAnchorPoint(ccp(1.0f, 1.0f));
+	m_minimapDrawNode->setID("minimap"_spr);
+	m_minimapMenu->addChild(m_minimapDrawNode);
+	this->updateMinimap();
+
 #ifdef GEODE_IS_MOBILE
 	this->setTouchPriority(-250);
 	this->setTouchEnabled(true);
@@ -153,6 +169,11 @@ bool ZoomLayer::init(CCNode* sceneLayer) {
 #endif
 
 	return true;
+}
+
+void ZoomLayer::update(float dt) {
+	CCLayer::update(dt);
+	this->updateMinimap();
 }
 
 void ZoomLayer::onExit() {
@@ -165,8 +186,10 @@ void ZoomLayer::onExit() {
 	m_isZooming = false;
 	m_zoomAnchor = ccp(0, 0);
 #endif
-
+	
 	m_backMenu = nullptr;
+	m_minimapMenu = nullptr;
+	m_minimapDrawNode = nullptr;
 
 	if (s_activeZoomLayer == this) {
 		s_activeZoomLayer = nullptr;
@@ -259,6 +282,101 @@ CCNode* ZoomLayer::getPauseLayer() {
 
 void ZoomLayer::onBackButton(CCObject* sender) {
 	this->close(false, true);
+}
+
+void ZoomLayer::updateMinimap() {
+	if (!m_minimapMenu || !m_minimapDrawNode) {
+		return;
+	}
+
+	m_minimapDrawNode->clear();
+
+	if (!SettingsManager::get()->enableMinimap) {
+		m_minimapMenu->setVisible(false);
+		return;
+	}
+
+	auto playLayer = this->getPlayLayer();
+	if (!playLayer) {
+		m_minimapMenu->setVisible(false);
+		return;
+	}
+	
+	constexpr float MINIMAP_SCALE_MULTIPLIER = 0.5f;
+
+	auto settings = SettingsManager::get();
+	auto minimapOuterFillColor = toColor4F(settings->minimapOuterFillColor);
+	auto minimapOuterBorderColor = toColor4F(settings->minimapOuterOutlineColor);
+	auto minimapInnerFillColor = toColor4F(settings->minimapInnerFillColor);
+	auto minimapInnerBorderColor = toColor4F(settings->minimapInnerOutlineColor);
+	auto minimapUiScale = settings->minimapScale * MINIMAP_SCALE_MULTIPLIER;
+	auto borderWidth = std::max(0.75f, kMinimapBorderWidth * minimapUiScale);
+	auto contentSize = playLayer->getContentSize();
+	if (contentSize.width <= 0.0f || contentSize.height <= 0.0f) {
+		m_minimapMenu->setVisible(false);
+		return;
+	}
+
+	m_minimapMenu->setVisible(true);
+	m_minimapDrawNode->setVisible(true);
+
+	auto minimapMaxWidth = kMinimapBaseWidth * minimapUiScale;
+	auto minimapMaxHeight = kMinimapBaseHeight * minimapUiScale;
+	auto minimapScale = std::min(minimapMaxWidth / contentSize.width, minimapMaxHeight / contentSize.height);
+	auto minimapSize = CCSize(contentSize.width * minimapScale, contentSize.height * minimapScale);
+	auto winSize = CCDirector::sharedDirector()->getWinSize();
+	auto minimapMenuPosition = ccp(winSize.width, winSize.height);
+	auto minimapPosition = ccp(-kMinimapMargin, -kMinimapMargin);
+	m_minimapMenu->setContentSize(CCSizeZero);
+	m_minimapMenu->setPosition(minimapMenuPosition);
+	m_minimapDrawNode->setContentSize(minimapSize);
+	m_minimapDrawNode->setPosition(minimapPosition);
+
+	// Seems like the alignment is bugged: center and outside seemed to be swapped
+	constexpr cocos2d::BorderAlignment borderAlignment = cocos2d::BorderAlignment::Center;
+
+	auto minimapRect = CCRect(0.0f, 0.0f, minimapSize.width, minimapSize.height);
+	m_minimapDrawNode->drawRect(
+		minimapRect,
+		minimapOuterFillColor,
+		borderWidth,
+		minimapOuterBorderColor,
+		borderAlignment
+	);
+
+	auto zoom = std::max(playLayer->getScale(), 1.0f);
+	auto screenSize = getScreenSize();
+	auto visibleSize = CCSize(
+		std::min(contentSize.width, screenSize.width / zoom),
+		std::min(contentSize.height, screenSize.height / zoom)
+	);
+
+	// Positive layer offsets move the world in the opposite direction, so we
+	// convert back into content-space to locate the actual camera window.
+	auto viewCenter = ccp(
+		contentSize.width * 0.5f - playLayer->getPositionX() / zoom,
+		contentSize.height * 0.5f - playLayer->getPositionY() / zoom
+	);
+
+	auto visibleOrigin = ccp(
+		clamp(viewCenter.x - visibleSize.width * 0.5f, 0.0f, contentSize.width - visibleSize.width),
+		clamp(viewCenter.y - visibleSize.height * 0.5f, 0.0f, contentSize.height - visibleSize.height)
+	);
+
+	auto viewportRect = CCRect(
+		visibleOrigin.x * minimapScale,
+		visibleOrigin.y * minimapScale,
+		std::max(2.0f, visibleSize.width * minimapScale),
+		std::max(2.0f, visibleSize.height * minimapScale)
+	);
+
+	m_minimapDrawNode->drawRect(
+		viewportRect,
+		minimapInnerFillColor,
+		borderWidth,
+		minimapInnerBorderColor,
+		borderAlignment
+	);
 }
 
 #ifdef GEODE_IS_MOBILE

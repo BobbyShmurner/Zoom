@@ -57,3 +57,13 @@ float clamp(float d, float min, float max) {
 	const float t = d < min ? min : d;
 	return t > max ? max : t;
 }
+
+cocos2d::ccColor4F toColor4F(cocos2d::ccColor4B color) {
+	auto alpha = color.a / 255.0f;
+	return {
+		(color.r / 255.0f) * alpha,
+		(color.g / 255.0f) * alpha,
+		(color.b / 255.0f) * alpha,
+		alpha
+	};
+}

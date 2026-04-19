@@ -113,6 +113,13 @@
       "default": [],
       "platforms": ["win", "mac"]
     },
+    "pan": {
+      "name": "Pan",
+      "description": "Hold to pan the zoomed view with your mouse while paused.",
+      "type": "keybind",
+      "default": [],
+      "platforms": ["win", "mac"]
+    },
     "pan-button": {
       "name": "Pan Button",
       "description": "Choose which mouse button pans the zoomed view on PC.",

@@ -16,6 +16,7 @@ public:
 	bool middleMouseDown = false;
 	bool mouse4Down = false;
 	bool mouse5Down = false;
+	bool panKeybindDown = false;
 
 	static WindowsZoomManager* get();
 
@@ -24,8 +25,11 @@ public:
 	void onMouseInput(MouseInputData const& input);
 	void onScroll(float y, float x);
 	void onZoomKey(bool zoomIn);
+	void setPanKeybindState(bool down);
+	void resetTransientInputs();
 
 private:
+	bool isPanInputHeld() const;
 	bool isPanButtonHeld() const;
 };
 #endif // GEODE_IS_DESKTOP

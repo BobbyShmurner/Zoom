@@ -140,6 +140,18 @@ void WindowsZoomManager::onMouseInput(MouseInputData const& input) {
 	}
 }
 
+void WindowsZoomManager::setPanKeybindState(bool down) {
+	panKeybindDown = down;
+}
+
+void WindowsZoomManager::resetTransientInputs() {
+	panKeybindDown = false;
+}
+
+bool WindowsZoomManager::isPanInputHeld() const {
+	return panKeybindDown || this->isPanButtonHeld();
+}
+
 bool WindowsZoomManager::isPanButtonHeld() const {
 	switch (SettingsManager::get()->panMouseButton) {
 		case PanMouseButton::Left:
@@ -166,6 +178,12 @@ void WindowsZoomManager::update(float dt) {
 	deltaMousePos = ccpSub(mousePos, lastMousePos);
 	lastMousePos = mousePos;
 
+	auto scene = CCScene::get();
+	if (!scene || !scene->getChildByID("PauseLayer")) {
+		this->resetTransientInputs();
+		return;
+	}
+
 	if (hasBlockingPausePopup()) {
 		return;
 	}
@@ -175,7 +193,7 @@ void WindowsZoomManager::update(float dt) {
 		return;
 	}
 
-	if (this->isPanButtonHeld()) {
+	if (this->isPanInputHeld()) {
 		zoomLayer->panBy(deltaMousePos);
 	}
 }
@@ -269,10 +287,38 @@ class $modify(DesktopZoomPauseLayer, PauseLayer) {
 				return ListenerResult::Propagate;
 			}
 		);
+
+		this->addEventListener(
+			KeybindSettingPressedEventV3(Mod::get(), "pan"),
+			[this](Keybind const& keybind, bool down, bool repeat, double timestamp) {
+				WindowsZoomManager::get()->setPanKeybindState(down);
+				return ListenerResult::Propagate;
+			}
+		);
 	}
 
 	void onZoomButton(CCObject* sender) {
 		ZoomLayer::create(this->getParent());
+	}
+
+	void onResume(CCObject* sender) {
+		WindowsZoomManager::get()->resetTransientInputs();
+		PauseLayer::onResume(sender);
+	}
+
+	void onRestart(CCObject* sender) {
+		WindowsZoomManager::get()->resetTransientInputs();
+		PauseLayer::onRestart(sender);
+	}
+
+	void onRestartFull(CCObject* sender) {
+		WindowsZoomManager::get()->resetTransientInputs();
+		PauseLayer::onRestartFull(sender);
+	}
+
+	void onQuit(CCObject* sender) {
+		WindowsZoomManager::get()->resetTransientInputs();
+		PauseLayer::onQuit(sender);
 	}
 };
 

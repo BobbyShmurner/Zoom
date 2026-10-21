@@ -322,13 +322,6 @@ class $modify(DesktopZoomPauseLayer, PauseLayer) {
 	}
 };
 
-class $modify(CCScheduler) {
-	virtual void update(float dt) {
-		WindowsZoomManager::get()->update(dt);
-		CCScheduler::update(dt);
-	}
-};
-
 $execute {
 	MouseInputEvent().listen([](MouseInputData& input) -> bool {
 		WindowsZoomManager::get()->onMouseInput(input);

@@ -5,6 +5,11 @@
 
 #include <Geode/modify/PauseLayer.hpp>
 #include <Geode/modify/PlayLayer.hpp>
+#include <Geode/modify/CCScheduler.hpp>
+
+#ifdef GEODE_IS_DESKTOP
+#include "desktop.hpp"
+#endif
 
 #include <algorithm>
 
@@ -77,6 +82,12 @@ ZoomLayer* ZoomLayer::create(CCNode* sceneLayer) {
 	return nullptr;
 }
 
+void ZoomLayer::syncActiveView() {
+	if (auto layer = ZoomLayer::get()) {
+		layer->syncSceneView();
+	}
+}
+
 void ZoomLayer::closeActive(bool resetView, bool restorePauseLayer) {
 	if (auto layer = ZoomLayer::get()) {
 		layer->close(resetView, restorePauseLayer);
@@ -127,6 +138,9 @@ bool ZoomLayer::init(CCNode* sceneLayer) {
 	this->setKeypadEnabled(true);
 	this->setMouseEnabled(true);
 	this->scheduleUpdate();
+	m_targetZoom = playLayer->getScale();
+	m_targetPosition = playLayer->getPosition();
+	m_pauseMenuVisible = false;
 
 	setScenePauseMenuVisible(sceneLayer, false);
 
@@ -174,6 +188,7 @@ bool ZoomLayer::init(CCNode* sceneLayer) {
 
 void ZoomLayer::update(float dt) {
 	CCLayer::update(dt);
+	this->syncSceneView();
 	if (m_backMenu) {
 		m_backMenu->setVisible(SettingsManager::get()->showBackButton);
 	}
@@ -211,13 +226,17 @@ void ZoomLayer::close(bool resetView, bool restorePauseLayer) {
 	this->setMouseEnabled(false);
 
 	if (resetView) {
+		m_targetZoom = 1.0f;
+		m_targetPosition = ccp(0, 0);
 		resetSceneView(this->getSceneLayer());
 	}
 
 	if (restorePauseLayer) {
+		m_pauseMenuVisible = true;
 		setScenePauseMenuVisible(this->getSceneLayer(), true);
 	}
 	else {
+		m_pauseMenuVisible = false;
 		setPracticeButtonsVisible(true);
 	}
 
@@ -227,10 +246,13 @@ void ZoomLayer::close(bool resetView, bool restorePauseLayer) {
 }
 
 void ZoomLayer::resetView() {
+	m_targetZoom = 1.0f;
+	m_targetPosition = ccp(0, 0);
 	resetSceneView(this->getSceneLayer());
 }
 
 void ZoomLayer::setPauseMenuVisible(bool visible) {
+	m_pauseMenuVisible = visible;
 	setScenePauseMenuVisible(this->getSceneLayer(), visible);
 }
 
@@ -241,8 +263,11 @@ void ZoomLayer::panBy(CCPoint delta) {
 		return;
 	}
 
-	playLayer->setPosition(playLayer->getPosition() + delta);
+	playLayer->setScale(m_targetZoom);
+	playLayer->setPosition(m_targetPosition + delta);
 	clampPlayLayerPos(playLayer);
+	m_targetZoom = playLayer->getScale();
+	m_targetPosition = playLayer->getPosition();
 }
 
 void ZoomLayer::zoomBy(float delta, CCPoint screenAnchor) {
@@ -252,16 +277,16 @@ void ZoomLayer::zoomBy(float delta, CCPoint screenAnchor) {
 		return;
 	}
 
+	playLayer->setScale(m_targetZoom);
+	playLayer->setPosition(m_targetPosition);
 	zoomPlayLayer(playLayer, delta, screenAnchor);
 	clampPlayLayerPos(playLayer);
+	m_targetZoom = playLayer->getScale();
+	m_targetPosition = playLayer->getPosition();
 }
 
 float ZoomLayer::getZoom() {
-	if (auto playLayer = this->getPlayLayer()) {
-		return playLayer->getScale();
-	}
-
-	return 1.0f;
+	return m_targetZoom;
 }
 
 CCNode* ZoomLayer::getSceneLayer() {
@@ -286,6 +311,18 @@ CCNode* ZoomLayer::getPauseLayer() {
 
 void ZoomLayer::onBackButton(CCObject* sender) {
 	this->close(false, true);
+}
+
+void ZoomLayer::syncSceneView() {
+	auto playLayer = this->getPlayLayer();
+	if (!playLayer) {
+		this->close(false, false);
+		return;
+	}
+
+	playLayer->setScale(m_targetZoom);
+	playLayer->setPosition(m_targetPosition);
+	setScenePauseMenuVisible(this->getSceneLayer(), m_pauseMenuVisible);
 }
 
 void ZoomLayer::updateMinimap() {
@@ -522,6 +559,18 @@ class $modify(ZoomPauseLayerLifecycle, PauseLayer) {
 	void onPracticeMode(CCObject* sender) {
 		ZoomLayer::closeActive(true, false);
 		PauseLayer::onPracticeMode(sender);
+	}
+};
+
+class $modify(ZoomSchedulerCompat, CCScheduler) {
+	void update(float dt) {
+		CCScheduler::update(dt);
+
+		#ifdef GEODE_IS_DESKTOP
+		WindowsZoomManager::get()->update(dt);
+		#endif
+
+		ZoomLayer::syncActiveView();
 	}
 };
 

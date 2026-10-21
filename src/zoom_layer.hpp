@@ -14,6 +14,7 @@ public:
 	static ZoomLayer* get();
 	static ZoomLayer* create(CCNode* sceneLayer);
 	static void closeActive(bool resetView = true, bool restorePauseLayer = true);
+	static void syncActiveView();
 
 	bool init(CCNode* sceneLayer);
 	void update(float dt) override;
@@ -42,6 +43,7 @@ public:
 private:
 	void onBackButton(CCObject* sender);
 	void updateMinimap();
+	void syncSceneView();
 
 #ifdef GEODE_IS_MOBILE
 	void removeTouch(CCTouch* touch);
@@ -51,10 +53,13 @@ private:
 	CCPoint m_zoomAnchor = ccp(0, 0);
 	std::vector<CCTouch*> m_touches = {};
 	#endif
-	
-		CCMenu* m_backMenu = nullptr;
-		CCNode* m_minimapMenu = nullptr;
-		CCDrawNode* m_minimapDrawNode = nullptr;
-	};
+
+	float m_targetZoom = 1.0f;
+	CCPoint m_targetPosition = ccp(0, 0);
+	bool m_pauseMenuVisible = true;
+	CCMenu* m_backMenu = nullptr;
+	CCNode* m_minimapMenu = nullptr;
+	CCDrawNode* m_minimapDrawNode = nullptr;
+};
 
 void addZoomButtonToPauseLayer(CCNode* pauseLayer, CCObject* target, SEL_MenuHandler callback);

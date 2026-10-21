@@ -1,9 +1,17 @@
 param (
-	[string] $platform = "windows"
+	[string] $platform = "windows",
+	[switch] $NoRun
 )
 
-geode build -p $platform
+$buildArgs = @("build", "-p", $platform)
+if ($platform -eq "windows" -and $env:CMAKE_GENERATOR -ceq "Ninja") {
+	# Geode otherwise adds -A x64, which Ninja does not support.
+	$buildArgs += "--ninja"
+}
+geode @buildArgs
+
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+if ($NoRun) { return }
 
 if ($platform -eq "windows") {
 	geode run
@@ -25,5 +33,5 @@ if ($platform -eq "windows") {
 		adb shell am force-stop com.geode.launcher
 	}
 } else {
-	Write-Warning "Cannor auto-run $platform"
+	Write-Warning "Cannot auto-run $platform"
 }

@@ -3,6 +3,13 @@
 #include <string>
 #include <Geode/Geode.hpp>
 
+enum class MinimapPosition {
+	TopLeft,
+	BottomLeft,
+	TopRight,
+	BottomRight,
+};
+
 #ifdef GEODE_IS_DESKTOP
 enum class PanMouseButton {
 	Left,
@@ -22,6 +29,7 @@ public:
 	float zoomSensitivity = 1.0f;
 	bool showBackButton = true;
 	bool enableMinimap = true;
+	MinimapPosition minimapPosition = MinimapPosition::TopRight;
 	float minimapScale = 1.0f;
 	cocos2d::ccColor4B minimapOuterFillColor = { 235, 235, 235, 96 };
 	cocos2d::ccColor4B minimapOuterOutlineColor = { 235, 235, 235, 96 };

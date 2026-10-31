@@ -5,8 +5,15 @@
 
 using namespace geode::prelude;
 
-#ifdef GEODE_IS_DESKTOP
 namespace {
+	MinimapPosition minimapPositionFromSetting(std::string_view value) {
+		if (value == "Top Left") return MinimapPosition::TopLeft;
+		if (value == "Bottom Left") return MinimapPosition::BottomLeft;
+		if (value == "Bottom Right") return MinimapPosition::BottomRight;
+		return MinimapPosition::TopRight;
+	}
+
+	#ifdef GEODE_IS_DESKTOP
 	PanMouseButton panMouseButtonFromSetting(std::string_view value) {
 		if (value == "Left Click") {
 			return PanMouseButton::Left;
@@ -22,8 +29,8 @@ namespace {
 		}
 		return PanMouseButton::Middle;
 	}
+	#endif
 }
-#endif
 
 SettingsManager* SettingsManager::get() {
 	static auto inst = new SettingsManager;
@@ -49,6 +56,11 @@ void SettingsManager::init() {
 	enableMinimap = Mod::get()->getSettingValue<bool>("enable-minimap");
 	listenForSettingChanges<bool>("enable-minimap", [&](bool enable) {
 		enableMinimap = enable;
+	});
+
+	minimapPosition = minimapPositionFromSetting(Mod::get()->getSettingValue<std::string>("minimap-position"));
+	listenForSettingChanges<std::string>("minimap-position", [&](std::string position) {
+		minimapPosition = minimapPositionFromSetting(position);
 	});
 
 	minimapScale = Mod::get()->getSettingValue<float>("minimap-scale");

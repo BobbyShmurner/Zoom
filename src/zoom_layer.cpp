@@ -366,10 +366,15 @@ void ZoomLayer::updateMinimap() {
 	auto minimapScale = std::min(minimapMaxWidth / contentSize.width, minimapMaxHeight / contentSize.height);
 	auto minimapSize = CCSize(contentSize.width * minimapScale, contentSize.height * minimapScale);
 	auto winSize = CCDirector::sharedDirector()->getWinSize();
-	auto minimapMenuPosition = ccp(winSize.width, winSize.height);
-	auto minimapPosition = ccp(-kMinimapMargin, -kMinimapMargin);
+	auto right = settings->minimapPosition == MinimapPosition::TopRight ||
+		settings->minimapPosition == MinimapPosition::BottomRight;
+	auto top = settings->minimapPosition == MinimapPosition::TopLeft ||
+		settings->minimapPosition == MinimapPosition::TopRight;
+	auto minimapMenuPosition = ccp(right ? winSize.width : 0.0f, top ? winSize.height : 0.0f);
+	auto minimapPosition = ccp(right ? -kMinimapMargin : kMinimapMargin, top ? -kMinimapMargin : kMinimapMargin);
 	m_minimapMenu->setContentSize(CCSizeZero);
 	m_minimapMenu->setPosition(minimapMenuPosition);
+	m_minimapDrawNode->setAnchorPoint(ccp(right ? 1.0f : 0.0f, top ? 1.0f : 0.0f));
 	m_minimapDrawNode->setContentSize(minimapSize);
 	m_minimapDrawNode->setPosition(minimapPosition);
 

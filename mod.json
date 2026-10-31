@@ -141,9 +141,18 @@
     },
     "enable-minimap": {
       "name": "Enable Minimap",
-      "description": "Show a minimap in the top-right corner while using zoom.",
+      "description": "Show a minimap while using zoom.",
       "type": "bool",
       "default": true
+    },
+    "minimap-position": {
+      "name": "Minimap Position",
+      "description": "Choose which corner displays the minimap.",
+      "type": "string",
+      "default": "Top Right",
+      "one-of": ["Top Left", "Bottom Left", "Top Right", "Bottom Right"],
+      "enable-if": "enable-minimap",
+      "enable-if-description": "Only available while the minimap is enabled."
     },
     "minimap-scale": {
       "name": "Minimap Scale",

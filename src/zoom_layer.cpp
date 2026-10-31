@@ -131,9 +131,18 @@ ZoomLayer* ZoomLayer::request(CCNode* sceneLayer, bool createIfMissing) {
 	#endif
 
 	if (isZoomBlockedBySafeMode()) {
-		static Ref<Notification> notification = Notification::create(
-			"Safe Mode - Zoom disabled mid attempt", NotificationIcon::Error
-		);
+		static Ref<Notification> notification = [] {
+			auto notification = Notification::create(
+				"Safe Mode - Zoom disabled mid attempt", NotificationIcon::Error
+			);
+			for (auto child : CCArrayExt<CCNode*>(notification->getChildren())) {
+				if (auto label = child->getChildByType<CCLabelBMFont>()) {
+					label->setAlignment(kCCTextAlignmentCenter);
+					break;
+				}
+			}
+			return notification;
+		}();
 		std::string message = "Safe Mode - Zoom disabled mid attempt";
 		#ifdef GEODE_IS_DESKTOP
 		if (!SettingsManager::get()->safeModeBypass) {

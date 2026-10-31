@@ -588,7 +588,10 @@ void addZoomButtonToPauseLayer(CCNode* pauseLayer, CCObject* target, SEL_MenuHan
 
 void openZoomFromPauseButton(CCNode* sceneLayer) {
 	if (isZoomBlockedBySafeMode()) {
-		Notification::create("Safe Mode - Zoom disabled mid attempt", NotificationIcon::Error)->show();
+		static Ref<Notification> notification = Notification::create(
+			"Safe Mode - Zoom disabled mid attempt", NotificationIcon::Error
+		);
+		notification->show();
 		return;
 	}
 	ZoomLayer::create(sceneLayer);

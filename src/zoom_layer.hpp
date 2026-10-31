@@ -15,6 +15,7 @@ public:
 	static ZoomLayer* create(CCNode* sceneLayer);
 	static void closeActive(bool resetView = true, bool restorePauseLayer = true);
 	static void syncActiveView();
+	static void enforceSafeMode();
 
 	bool init(CCNode* sceneLayer);
 	void update(float dt) override;
@@ -63,3 +64,4 @@ private:
 };
 
 void addZoomButtonToPauseLayer(CCNode* pauseLayer, CCObject* target, SEL_MenuHandler callback);
+void openZoomFromPauseButton(CCNode* sceneLayer);

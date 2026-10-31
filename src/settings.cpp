@@ -1,4 +1,5 @@
 #include "settings.hpp"
+#include "zoom_layer.hpp"
 
 #include <Geode/Geode.hpp>
 #include <Geode/loader/SettingV3.hpp>
@@ -38,6 +39,14 @@ SettingsManager* SettingsManager::get() {
 }
 
 void SettingsManager::init() {
+	safeMode = Mod::get()->getSettingValue<bool>("safe-mode");
+	listenForSettingChanges<bool>("safe-mode", [&](bool enabled) {
+		safeMode = enabled;
+		if (enabled) {
+			ZoomLayer::enforceSafeMode();
+		}
+	});
+
 	hidePracticeButtons = Mod::get()->getSettingValue<bool>("hide-practice-buttons");
 	listenForSettingChanges<bool>("hide-practice-buttons", [&](bool enable) {
 		hidePracticeButtons = enable;

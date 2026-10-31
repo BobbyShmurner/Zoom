@@ -26,6 +26,7 @@ public:
 	void init();
 
 	bool hidePracticeButtons = true;
+	bool safeMode = true;
 	float zoomSensitivity = 1.0f;
 	bool showBackButton = true;
 	bool enableMinimap = true;

@@ -6,6 +6,7 @@
 #include <Geode/modify/PauseLayer.hpp>
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/modify/CCScheduler.hpp>
+#include <Geode/ui/Notification.hpp>
 
 #ifdef GEODE_IS_DESKTOP
 #include "desktop.hpp"
@@ -21,6 +22,30 @@ namespace {
 	constexpr float kMinimapBaseWidth = 112.0f;
 	constexpr float kMinimapBaseHeight = 68.0f;
 	constexpr float kMinimapBorderWidth = 1.5f;
+
+	bool isZoomBlockedBySafeMode() {
+		if (!SettingsManager::get()->safeMode) {
+			return false;
+		}
+
+		auto playLayer = PlayLayer::get();
+		if (!playLayer || !playLayer->m_player1 || !playLayer->m_player1->m_isDead) {
+			return true;
+		}
+		return playLayer->m_gameState.m_isDualMode &&
+			(!playLayer->m_player2 || !playLayer->m_player2->m_isDead);
+	}
+
+	void updateZoomButtonAppearance() {
+		auto scene = CCScene::get();
+		auto pauseLayer = scene ? scene->getChildByID("PauseLayer") : nullptr;
+		auto menu = pauseLayer ? pauseLayer->getChildByID("right-button-menu") : nullptr;
+		auto button = menu ? typeinfo_cast<CCMenuItemSpriteExtra*>(menu->getChildByID("zoom-button"_spr)) : nullptr;
+		auto sprite = button ? typeinfo_cast<CCSprite*>(button->getNormalImage()) : nullptr;
+		if (sprite) {
+			sprite->setOpacity(isZoomBlockedBySafeMode() ? 100 : 255);
+		}
+	}
 
 	void setPracticeButtonsVisible(bool visible) {
 		if (!SettingsManager::get()->hidePracticeButtons) {
@@ -63,6 +88,10 @@ ZoomLayer* ZoomLayer::get() {
 }
 
 ZoomLayer* ZoomLayer::create(CCNode* sceneLayer) {
+	if (isZoomBlockedBySafeMode()) {
+		return nullptr;
+	}
+
 	if (auto layer = ZoomLayer::get()) {
 		if (layer->getSceneLayer() == sceneLayer) {
 			return layer;
@@ -84,7 +113,20 @@ ZoomLayer* ZoomLayer::create(CCNode* sceneLayer) {
 
 void ZoomLayer::syncActiveView() {
 	if (auto layer = ZoomLayer::get()) {
+		if (isZoomBlockedBySafeMode()) {
+			layer->close(true, true);
+			return;
+		}
 		layer->syncSceneView();
+	}
+}
+
+void ZoomLayer::enforceSafeMode() {
+	if (!isZoomBlockedBySafeMode()) {
+		return;
+	}
+	if (auto scene = CCScene::get(); scene && scene->getChildByID("PauseLayer")) {
+		ZoomLayer::closeActive(true, true);
 	}
 }
 
@@ -225,6 +267,7 @@ void ZoomLayer::close(bool resetView, bool restorePauseLayer) {
 	this->setKeypadEnabled(false);
 	this->setMouseEnabled(false);
 
+	resetView = resetView || isZoomBlockedBySafeMode();
 	if (resetView) {
 		m_targetZoom = 1.0f;
 		m_targetPosition = ccp(0, 0);
@@ -257,6 +300,7 @@ void ZoomLayer::setPauseMenuVisible(bool visible) {
 }
 
 void ZoomLayer::panBy(CCPoint delta) {
+	if (isZoomBlockedBySafeMode()) return;
 	auto playLayer = this->getPlayLayer();
 	if (!playLayer) {
 		this->close(false, false);
@@ -271,6 +315,7 @@ void ZoomLayer::panBy(CCPoint delta) {
 }
 
 void ZoomLayer::zoomBy(float delta, CCPoint screenAnchor) {
+	if (isZoomBlockedBySafeMode()) return;
 	auto playLayer = this->getPlayLayer();
 	if (!playLayer) {
 		this->close(false, false);
@@ -533,11 +578,20 @@ void addZoomButtonToPauseLayer(CCNode* pauseLayer, CCObject* target, SEL_MenuHan
 	);
 	zoomButtonSprite->getTopNode()->setScale(1.0f);
 	zoomButtonSprite->setScale(0.6f);
+	zoomButtonSprite->setOpacity(isZoomBlockedBySafeMode() ? 100 : 255);
 
 	auto zoomButton = CCMenuItemSpriteExtra::create(zoomButtonSprite, target, callback);
 	zoomButton->setID("zoom-button"_spr);
 	rightButtonMenu->addChild(zoomButton);
 	rightButtonMenu->updateLayout();
+}
+
+void openZoomFromPauseButton(CCNode* sceneLayer) {
+	if (isZoomBlockedBySafeMode()) {
+		Notification::create("Safe Mode - Zoom disabled mid attempt", NotificationIcon::Error)->show();
+		return;
+	}
+	ZoomLayer::create(sceneLayer);
 }
 
 class $modify(ZoomPauseLayerLifecycle, PauseLayer) {
@@ -576,6 +630,7 @@ class $modify(ZoomSchedulerCompat, CCScheduler) {
 		#endif
 
 		ZoomLayer::syncActiveView();
+		updateZoomButtonAppearance();
 	}
 };
 

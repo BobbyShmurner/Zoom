@@ -298,7 +298,7 @@ class $modify(DesktopZoomPauseLayer, PauseLayer) {
 	}
 
 	void onZoomButton(CCObject* sender) {
-		ZoomLayer::create(this->getParent());
+		openZoomFromPauseButton(this->getParent());
 	}
 
 	void onResume(CCObject* sender) {

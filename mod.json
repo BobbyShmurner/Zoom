@@ -34,7 +34,7 @@
       "name": "Safe Mode",
       "description": "Prevent zooming while an attempt is still alive. Disable this to allow zooming mid attempt.",
       "type": "bool",
-      "default": true
+      "default": false
     },
     "safe-mode-bypass": {
       "name": "Allow Safe Mode Bypass",

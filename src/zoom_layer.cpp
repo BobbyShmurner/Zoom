@@ -7,6 +7,7 @@
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/modify/CCScheduler.hpp>
 #include <Geode/ui/Notification.hpp>
+#include <Geode/ui/Popup.hpp>
 
 #ifdef GEODE_IS_DESKTOP
 #include "desktop.hpp"
@@ -19,22 +20,23 @@ using namespace geode::prelude;
 namespace {
 	ZoomLayer* s_activeZoomLayer = nullptr;
 	bool s_safeModeBypassed = false;
+	bool s_safeModePromptOpen = false;
 	constexpr float kMinimapMargin = 12.0f;
 	constexpr float kMinimapBaseWidth = 112.0f;
 	constexpr float kMinimapBaseHeight = 68.0f;
 	constexpr float kMinimapBorderWidth = 1.5f;
 
-	bool isZoomBlockedBySafeMode() {
-		if (!SettingsManager::get()->safeMode || s_safeModeBypassed) {
-			return false;
-		}
-
+	bool isAttemptAlive() {
 		auto playLayer = PlayLayer::get();
 		if (!playLayer || !playLayer->m_player1 || !playLayer->m_player1->m_isDead) {
 			return true;
 		}
 		return playLayer->m_gameState.m_isDualMode &&
 			(!playLayer->m_player2 || !playLayer->m_player2->m_isDead);
+	}
+
+	bool isZoomBlockedBySafeMode() {
+		return SettingsManager::get()->safeMode && !s_safeModeBypassed && isAttemptAlive();
 	}
 
 	void updateZoomButtonAppearance() {
@@ -90,6 +92,32 @@ ZoomLayer* ZoomLayer::get() {
 
 ZoomLayer* ZoomLayer::request(CCNode* sceneLayer, bool createIfMissing) {
 	if (!sceneLayer || !sceneLayer->getChildByID("PauseLayer")) {
+		return nullptr;
+	}
+
+	if (isAttemptAlive() && !s_safeModeBypassed &&
+		!Mod::get()->getSavedValue<bool>("safe-mode-prompt-answered", false)) {
+		if (!s_safeModePromptOpen) {
+			s_safeModePromptOpen = true;
+			createQuickPopup(
+				"Enable Safe Mode?",
+				"Demon List runs are now invalidated for zooming mid attempt.\n"
+				"Enable Safe Mode to prevent zooming while the player is alive?",
+				"Disable", "Enable",
+				[scene = WeakRef(sceneLayer), createIfMissing](FLAlertLayer*, bool enable) {
+					s_safeModePromptOpen = false;
+					Mod::get()->setSettingValue<bool>("safe-mode", enable);
+					Mod::get()->setSavedValue<bool>("safe-mode-prompt-answered", true);
+					if (!enable) {
+						Loader::get()->queueInMainThread([scene, createIfMissing] {
+							if (auto activeScene = scene.lock(); activeScene && CCScene::get() == activeScene.data()) {
+								ZoomLayer::request(activeScene.data(), createIfMissing);
+							}
+						});
+					}
+				}
+			);
+		}
 		return nullptr;
 	}
 

@@ -18,13 +18,14 @@ using namespace geode::prelude;
 
 namespace {
 	ZoomLayer* s_activeZoomLayer = nullptr;
+	bool s_safeModeBypassed = false;
 	constexpr float kMinimapMargin = 12.0f;
 	constexpr float kMinimapBaseWidth = 112.0f;
 	constexpr float kMinimapBaseHeight = 68.0f;
 	constexpr float kMinimapBorderWidth = 1.5f;
 
 	bool isZoomBlockedBySafeMode() {
-		if (!SettingsManager::get()->safeMode) {
+		if (!SettingsManager::get()->safeMode || s_safeModeBypassed) {
 			return false;
 		}
 
@@ -92,10 +93,30 @@ ZoomLayer* ZoomLayer::request(CCNode* sceneLayer, bool createIfMissing) {
 		return nullptr;
 	}
 
+	bool activatedBypass = false;
+	#ifdef GEODE_IS_DESKTOP
+	if (isZoomBlockedBySafeMode() && createIfMissing && PlayLayer::get() && PlayLayer::get()->m_player1 &&
+		SettingsManager::get()->safeModeBypass && WindowsZoomManager::get()->isSafeModeBypassHeld()) {
+		s_safeModeBypassed = true;
+		activatedBypass = true;
+	}
+	#endif
+
 	if (isZoomBlockedBySafeMode()) {
 		static Ref<Notification> notification = Notification::create(
 			"Safe Mode - Zoom disabled mid attempt", NotificationIcon::Error
 		);
+		std::string message = "Safe Mode - Zoom disabled mid attempt";
+		#ifdef GEODE_IS_DESKTOP
+		if (!SettingsManager::get()->safeModeBypass) {
+			message += "\nEnable bypass in settings";
+		} else if (auto key = WindowsZoomManager::get()->safeModeBypassKeyLabel(); !key.empty()) {
+			message += "\nHold " + key + " to bypass";
+		} else {
+			message += "\nSet a bypass key in settings";
+		}
+		#endif
+		notification->setString(message);
 		notification->show();
 		return nullptr;
 	}
@@ -107,7 +128,15 @@ ZoomLayer* ZoomLayer::request(CCNode* sceneLayer, bool createIfMissing) {
 		layer->close(false, false);
 	}
 
-	return createIfMissing ? ZoomLayer::create(sceneLayer) : nullptr;
+	auto layer = createIfMissing ? ZoomLayer::create(sceneLayer) : nullptr;
+	if (activatedBypass && !layer) {
+		s_safeModeBypassed = false;
+	}
+	return layer;
+}
+
+void ZoomLayer::resetSafeModeBypass() {
+	s_safeModeBypassed = false;
 }
 
 ZoomLayer* ZoomLayer::create(CCNode* sceneLayer) {
@@ -232,6 +261,15 @@ bool ZoomLayer::init(CCNode* sceneLayer) {
 	m_minimapMenu->setAnchorPoint(ccp(1.0f, 1.0f));
 	m_minimapMenu->setID("minimap-menu"_spr);
 	this->addChild(m_minimapMenu);
+
+	if (s_safeModeBypassed) {
+		auto label = CCLabelBMFont::create("Safe Mode bypassed for this attempt", "bigFont.fnt");
+		label->setScale(0.35f);
+		label->setColor(ccc3(255, 180, 50));
+		label->setPosition(ccp(CCDirector::get()->getWinSize().width * 0.5f, 14.0f));
+		label->setID("safe-mode-bypassed-label"_spr);
+		this->addChild(label);
+	}
 
 	m_minimapDrawNode = CCDrawNode::create();
 	m_minimapDrawNode->ignoreAnchorPointForPosition(false);
@@ -651,6 +689,7 @@ class $modify(ZoomSchedulerCompat, CCScheduler) {
 
 class $modify(ZoomPlayLayerLifecycle, PlayLayer) {
 	bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
+		ZoomLayer::resetSafeModeBypass();
 		ZoomLayer::closeActive(true, false);
 		return PlayLayer::init(level, useReplay, dontCreateObjects);
 	}
@@ -660,12 +699,18 @@ class $modify(ZoomPlayLayerLifecycle, PlayLayer) {
 		PlayLayer::startGame();
 	}
 
+	void resetLevel() {
+		ZoomLayer::resetSafeModeBypass();
+		PlayLayer::resetLevel();
+	}
+
 	void levelComplete() {
 		ZoomLayer::closeActive(false, false);
 		PlayLayer::levelComplete();
 	}
 
 	void onQuit() {
+		ZoomLayer::resetSafeModeBypass();
 		ZoomLayer::closeActive(false, false);
 		PlayLayer::onQuit();
 	}

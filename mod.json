@@ -36,6 +36,15 @@
       "type": "bool",
       "default": true
     },
+    "safe-mode-bypass": {
+      "name": "Allow Safe Mode Bypass",
+      "description": "Hold the bypass key while starting zoom to unlock zoom for the rest of the current attempt. Using zoom mid attempt may invalidate the attempt.",
+      "type": "bool",
+      "default": false,
+      "platforms": ["win", "mac"],
+      "enable-if": "safe-mode",
+      "enable-if-description": "Only available while Safe Mode is enabled."
+    },
     "zoom-sensitivity": {
       "name": "Zoom Sensitivity",
       "description": "How quickly zoom responds. Higher values make scroll, keybind, and pinch zoom faster.",
@@ -97,6 +106,15 @@
       "name": "Controls",
       "description": "Settings for the controls and keybinds.",
       "platforms": ["win", "mac"]
+    },
+    "safe-mode-bypass-key": {
+      "name": "Safe Mode Bypass Key",
+      "description": "Hold this key while starting zoom to bypass Safe Mode for the current attempt.",
+      "type": "keybind",
+      "default": ["LeftShift", "RightShift"],
+      "platforms": ["win", "mac"],
+      "enable-if": "safe-mode-bypass",
+      "enable-if-description": "Only available while Safe Mode bypass is enabled."
     },
     "toggle-menu": {
       "name": "Toggle Zoom UI",

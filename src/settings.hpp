@@ -38,6 +38,7 @@ public:
 	cocos2d::ccColor4B minimapInnerOutlineColor = { 255, 26, 26, 96 };
 
 	#ifdef GEODE_IS_DESKTOP
+		bool safeModeBypass = false;
 		bool autoHideMenu;
 		bool autoShowMenu;
 		bool altDisablesZoom;

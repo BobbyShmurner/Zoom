@@ -144,6 +144,80 @@ void WindowsZoomManager::onMouseInput(MouseInputData const& input) {
 	}
 }
 
+void WindowsZoomManager::onKeyboardInput(KeyboardInputData const& input) {
+	if (input.action == KeyboardInputData::Action::Release) {
+		m_heldKeys.erase(input.key);
+		return;
+	}
+	m_heldKeys.insert(input.key);
+
+	if (!SettingsManager::get()->safeMode || !SettingsManager::get()->safeModeBypass ||
+		!this->isSafeModeBypassHeld()) {
+		return;
+	}
+
+	// Geode normally requires an exact modifier match. Permit the extra
+	// modifiers belonging to the held bypass key for zoom shortcuts.
+	KeyboardModifier bypassModifiers = KeyboardModifier::None;
+	for (auto const& bypass : Mod::get()->getSettingValue<std::vector<Keybind>>("safe-mode-bypass-key")) {
+		bool held = m_heldKeys.contains(bypass.key) ||
+			(bypass.key == MOUSE_4 && mouse4Down) || (bypass.key == MOUSE_5 && mouse5Down);
+		if (held && (input.modifiers & bypass.modifiers.value) == bypass.modifiers) {
+			bypassModifiers |= bypass.modifiers.value;
+		}
+	}
+
+	auto matchesWithBypass = [&](char const* setting) {
+		auto bindings = Mod::get()->getSettingValue<std::vector<Keybind>>(setting);
+		// An exact match is already handled by Geode's keybind listener.
+		for (auto const& binding : bindings) {
+			if (binding.key == input.key && binding.modifiers == input.modifiers) return false;
+		}
+		for (auto const& binding : bindings) {
+			auto extra = input.modifiers.value & ~binding.modifiers.value;
+			if (binding.key == input.key &&
+				(input.modifiers & binding.modifiers.value) == binding.modifiers &&
+				extra && !(extra & ~bypassModifiers.value)) return true;
+		}
+		return false;
+	};
+
+	if (input.action != KeyboardInputData::Action::Repeat && matchesWithBypass("toggle-menu")) {
+		this->toggleZoomUI();
+	}
+	if (matchesWithBypass("zoom-in")) this->onZoomKey(true);
+	if (matchesWithBypass("zoom-out")) this->onZoomKey(false);
+}
+
+bool WindowsZoomManager::isSafeModeBypassHeld() const {
+	auto keyboard = CCKeyboardDispatcher::get();
+	KeyboardModifier modifiers = KeyboardModifier::None;
+	if (keyboard->getShiftKeyPressed()) modifiers |= KeyboardModifier::Shift;
+	if (keyboard->getControlKeyPressed()) modifiers |= KeyboardModifier::Control;
+	if (keyboard->getAltKeyPressed()) modifiers |= KeyboardModifier::Alt;
+	if (keyboard->getCommandKeyPressed()) modifiers |= KeyboardModifier::Super;
+
+	for (auto const& keybind : Mod::get()->getSettingValue<std::vector<Keybind>>("safe-mode-bypass-key")) {
+		bool held = m_heldKeys.contains(keybind.key) ||
+			(keybind.key == MOUSE_4 && mouse4Down) ||
+			(keybind.key == MOUSE_5 && mouse5Down);
+		if (held && (modifiers & keybind.modifiers.value) == keybind.modifiers) {
+			return true;
+		}
+	}
+	return false;
+}
+
+std::string WindowsZoomManager::safeModeBypassKeyLabel() const {
+	auto keys = Mod::get()->getSettingValue<std::vector<Keybind>>("safe-mode-bypass-key");
+	if (keys.empty()) return {};
+	if (keys.size() == 2 && keys[0].key == KEY_LeftShift && keys[1].key == KEY_RightShift &&
+		keys[0].modifiers == KeyboardModifier::Shift && keys[1].modifiers == KeyboardModifier::Shift) {
+		return "Shift";
+	}
+	return keys.front().toString();
+}
+
 void WindowsZoomManager::setPanKeybindState(bool down) {
 	panKeybindDown = down;
 }
@@ -327,6 +401,11 @@ class $modify(DesktopZoomPauseLayer, PauseLayer) {
 };
 
 $execute {
+	KeyboardInputEvent().listen([](KeyboardInputData& input) -> bool {
+		WindowsZoomManager::get()->onKeyboardInput(input);
+		return ListenerResult::Propagate;
+	}).leak();
+
 	MouseInputEvent().listen([](MouseInputData& input) -> bool {
 		WindowsZoomManager::get()->onMouseInput(input);
 		return ListenerResult::Propagate;

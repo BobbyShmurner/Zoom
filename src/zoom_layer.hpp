@@ -16,6 +16,7 @@ public:
 	static void closeActive(bool resetView = true, bool restorePauseLayer = true);
 	static void syncActiveView();
 	static void enforceSafeMode();
+	static void resetSafeModeBypass();
 
 	bool init(CCNode* sceneLayer);
 	void update(float dt) override;

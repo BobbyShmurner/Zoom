@@ -98,6 +98,11 @@ void SettingsManager::init() {
 	});
 
 	#ifdef GEODE_IS_DESKTOP
+	safeModeBypass = Mod::get()->getSettingValue<bool>("safe-mode-bypass");
+	listenForSettingChanges<bool>("safe-mode-bypass", [&](bool enabled) {
+		safeModeBypass = enabled;
+	});
+
 	autoHideMenu = Mod::get()->getSettingValue<bool>("auto-hide-menu");
 	listenForSettingChanges<bool>("auto-hide-menu", [&](bool enable) {
 		autoHideMenu = enable;

@@ -3,6 +3,7 @@
 
 #include <Geode/Geode.hpp>
 #include <Geode/utils/Keyboard.hpp>
+#include <unordered_set>
 
 using namespace geode::prelude;
 
@@ -23,12 +24,16 @@ public:
 	void update(float dt);
 	void toggleZoomUI();
 	void onMouseInput(MouseInputData const& input);
+	void onKeyboardInput(KeyboardInputData const& input);
+	bool isSafeModeBypassHeld() const;
+	std::string safeModeBypassKeyLabel() const;
 	void onScroll(float y, float x);
 	void onZoomKey(bool zoomIn);
 	void setPanKeybindState(bool down);
 	void resetTransientInputs();
 
 private:
+	std::unordered_set<cocos2d::enumKeyCodes> m_heldKeys;
 	bool isPanInputHeld() const;
 	bool isPanButtonHeld() const;
 };

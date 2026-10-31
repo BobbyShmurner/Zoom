@@ -87,6 +87,29 @@ ZoomLayer* ZoomLayer::get() {
 	return s_activeZoomLayer;
 }
 
+ZoomLayer* ZoomLayer::request(CCNode* sceneLayer, bool createIfMissing) {
+	if (!sceneLayer || !sceneLayer->getChildByID("PauseLayer")) {
+		return nullptr;
+	}
+
+	if (isZoomBlockedBySafeMode()) {
+		static Ref<Notification> notification = Notification::create(
+			"Safe Mode - Zoom disabled mid attempt", NotificationIcon::Error
+		);
+		notification->show();
+		return nullptr;
+	}
+
+	if (auto layer = ZoomLayer::get()) {
+		if (layer->getSceneLayer() == sceneLayer && layer->getPlayLayer() && layer->getPauseLayer()) {
+			return layer;
+		}
+		layer->close(false, false);
+	}
+
+	return createIfMissing ? ZoomLayer::create(sceneLayer) : nullptr;
+}
+
 ZoomLayer* ZoomLayer::create(CCNode* sceneLayer) {
 	if (isZoomBlockedBySafeMode()) {
 		return nullptr;
@@ -584,17 +607,6 @@ void addZoomButtonToPauseLayer(CCNode* pauseLayer, CCObject* target, SEL_MenuHan
 	zoomButton->setID("zoom-button"_spr);
 	rightButtonMenu->addChild(zoomButton);
 	rightButtonMenu->updateLayout();
-}
-
-void openZoomFromPauseButton(CCNode* sceneLayer) {
-	if (isZoomBlockedBySafeMode()) {
-		static Ref<Notification> notification = Notification::create(
-			"Safe Mode - Zoom disabled mid attempt", NotificationIcon::Error
-		);
-		notification->show();
-		return;
-	}
-	ZoomLayer::create(sceneLayer);
 }
 
 class $modify(ZoomPauseLayerLifecycle, PauseLayer) {

@@ -12,7 +12,7 @@ using namespace geode::prelude;
 class ZoomLayer : public CCLayer {
 public:
 	static ZoomLayer* get();
-	static ZoomLayer* create(CCNode* sceneLayer);
+	static ZoomLayer* request(CCNode* sceneLayer, bool createIfMissing = true);
 	static void closeActive(bool resetView = true, bool restorePauseLayer = true);
 	static void syncActiveView();
 	static void enforceSafeMode();
@@ -42,6 +42,7 @@ public:
 #endif
 
 private:
+	static ZoomLayer* create(CCNode* sceneLayer);
 	void onBackButton(CCObject* sender);
 	void updateMinimap();
 	void syncSceneView();
@@ -64,4 +65,3 @@ private:
 };
 
 void addZoomButtonToPauseLayer(CCNode* pauseLayer, CCObject* target, SEL_MenuHandler callback);
-void openZoomFromPauseButton(CCNode* sceneLayer);

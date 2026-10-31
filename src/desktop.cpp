@@ -58,10 +58,14 @@ namespace {
 		return false;
 	}
 
-	ZoomLayer* getPausedZoomLayer(bool createIfMissing) {
+	ZoomLayer* getPausedZoomLayer(bool createIfMissing, bool zoomAttempt = true) {
 		auto scene = CCScene::get();
 		if (!scene || !scene->getChildByID("PauseLayer")) {
 			return nullptr;
+		}
+
+		if (zoomAttempt) {
+			return ZoomLayer::request(scene, createIfMissing);
 		}
 
 		if (auto zoomLayer = ZoomLayer::get()) {
@@ -72,7 +76,7 @@ namespace {
 			ZoomLayer::closeActive(false, false);
 		}
 
-		return createIfMissing ? ZoomLayer::create(scene) : nullptr;
+		return nullptr;
 	}
 
 	void updateZoomLayerMenuState(ZoomLayer* zoomLayer) {
@@ -111,7 +115,7 @@ void WindowsZoomManager::toggleZoomUI() {
 		return;
 	}
 
-	ZoomLayer::create(scene);
+	ZoomLayer::request(scene);
 }
 
 void WindowsZoomManager::onMouseInput(MouseInputData const& input) {
@@ -188,7 +192,7 @@ void WindowsZoomManager::update(float dt) {
 		return;
 	}
 
-	auto zoomLayer = getPausedZoomLayer(false);
+	auto zoomLayer = getPausedZoomLayer(false, false);
 	if (!zoomLayer || zoomLayer->getZoom() <= kClosedZoomThreshold) {
 		return;
 	}
@@ -298,7 +302,7 @@ class $modify(DesktopZoomPauseLayer, PauseLayer) {
 	}
 
 	void onZoomButton(CCObject* sender) {
-		openZoomFromPauseButton(this->getParent());
+		ZoomLayer::request(this->getParent());
 	}
 
 	void onResume(CCObject* sender) {

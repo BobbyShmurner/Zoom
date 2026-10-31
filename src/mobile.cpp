@@ -12,7 +12,7 @@ class $modify(AndroidZoomPauseLayer, PauseLayer) {
 	}
 
 	void onZoomButton(CCObject* sender) {
-		openZoomFromPauseButton(this->getParent());
+		ZoomLayer::request(this->getParent());
 	}
 };
 

@@ -108,7 +108,7 @@
       "name": "Safe Mode Bypass Key",
       "description": "Hold this key while starting zoom to bypass Safe Mode for the current attempt.",
       "type": "keybind",
-      "default": ["LeftShift", "RightShift"],
+      "default": "LeftShift",
       "platforms": ["win", "mac"],
       "enable-if": "safe-mode-bypass",
       "enable-if-description": "Only available while Safe Mode bypass is enabled."

@@ -20,9 +20,6 @@
       "required": true
     }
   },
-  "resources": {
-    "sprites": ["resources/*.png"]
-  },
   "tags": ["enhancement", "interface", "offline", "utility"],
   "settings": {
     "basic-title": {

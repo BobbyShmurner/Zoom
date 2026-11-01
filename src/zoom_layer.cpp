@@ -670,16 +670,17 @@ void addZoomButtonToPauseLayer(CCNode* pauseLayer, CCObject* target, SEL_MenuHan
 		return;
 	}
 
-	auto zoomButtonSprite = CircleButtonSprite::createWithSprite(
-		"zoom_button.png"_spr,
-		1.0f,
-		CircleBaseColor::Green,
-		CircleBaseSize::MediumAlt
-	);
-	zoomButtonSprite->getTopNode()->setScale(1.0f);
-	zoomButtonSprite->setScale(0.6f);
+	auto zoomButtonSprite = CCSprite::createWithSpriteFrameName("sideBtn_search_001.png");
+	if (!zoomButtonSprite) return;
+	if (auto optionsButton = typeinfo_cast<CCMenuItemSpriteExtra*>(rightButtonMenu->getChildByID("options-button"))) {
+		if (auto optionsSprite = optionsButton->getNormalImage()) {
+			auto referenceWidth = optionsSprite->getScaledContentSize().width;
+			if (referenceWidth > 0.f && zoomButtonSprite->getContentWidth() > 0.f) {
+				zoomButtonSprite->setScale(referenceWidth / zoomButtonSprite->getContentWidth());
+			}
+		}
+	}
 	zoomButtonSprite->setOpacity(isZoomBlockedBySafeMode() ? 100 : 255);
-
 	auto zoomButton = CCMenuItemSpriteExtra::create(zoomButtonSprite, target, callback);
 	zoomButton->setID("zoom-button"_spr);
 	rightButtonMenu->addChild(zoomButton);

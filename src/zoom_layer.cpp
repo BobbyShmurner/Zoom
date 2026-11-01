@@ -42,7 +42,8 @@ namespace {
 	void updateZoomButtonAppearance() {
 		auto scene = CCScene::get();
 		auto pauseLayer = scene ? scene->getChildByID("PauseLayer") : nullptr;
-		auto menu = pauseLayer ? pauseLayer->getChildByID("right-button-menu") : nullptr;
+		auto mainLayer = pauseLayer ? pauseLayer->getChildByID("main-layer") : nullptr;
+		auto menu = mainLayer ? mainLayer->getChildByID("right-button-menu") : nullptr;
 		auto button = menu ? typeinfo_cast<CCMenuItemSpriteExtra*>(menu->getChildByID("zoom-button"_spr)) : nullptr;
 		auto sprite = button ? typeinfo_cast<CCSprite*>(button->getNormalImage()) : nullptr;
 		if (sprite) {
@@ -136,8 +137,8 @@ ZoomLayer* ZoomLayer::request(CCNode* sceneLayer, bool createIfMissing) {
 				"Safe Mode - Zoom disabled mid attempt", NotificationIcon::Error
 			);
 			for (auto child : CCArrayExt<CCNode*>(notification->getChildren())) {
-				if (auto label = child->getChildByType<CCLabelBMFont>()) {
-					label->setAlignment(kCCTextAlignmentCenter);
+				if (auto label = child->getChildByType<Label>()) {
+					label->setAlignment(Label::Alignment::Center);
 					break;
 				}
 			}
@@ -663,7 +664,8 @@ void addZoomButtonToPauseLayer(CCNode* pauseLayer, CCObject* target, SEL_MenuHan
 	}
 	#endif
 
-	auto rightButtonMenu = pauseLayer->getChildByID("right-button-menu");
+	auto mainLayer = pauseLayer->getChildByID("main-layer");
+	auto rightButtonMenu = mainLayer ? mainLayer->getChildByID("right-button-menu") : nullptr;
 	if (!rightButtonMenu || rightButtonMenu->getChildByID("zoom-button"_spr)) {
 		return;
 	}
@@ -725,10 +727,10 @@ class $modify(ZoomSchedulerCompat, CCScheduler) {
 };
 
 class $modify(ZoomPlayLayerLifecycle, PlayLayer) {
-	bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
+	bool init(GJGameLevel* level, bool dontCreateObjects) {
 		ZoomLayer::resetSafeModeBypass();
 		ZoomLayer::closeActive(true, false);
-		return PlayLayer::init(level, useReplay, dontCreateObjects);
+		return PlayLayer::init(level, dontCreateObjects);
 	}
 
 	void startGame() {

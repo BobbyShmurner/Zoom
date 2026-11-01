@@ -150,43 +150,6 @@ void WindowsZoomManager::onKeyboardInput(KeyboardInputData const& input) {
 		return;
 	}
 	m_heldKeys.insert(input.key);
-
-	if (!SettingsManager::get()->safeMode || !SettingsManager::get()->safeModeBypass ||
-		!this->isSafeModeBypassHeld()) {
-		return;
-	}
-
-	// Geode normally requires an exact modifier match. Permit the extra
-	// modifiers belonging to the held bypass key for zoom shortcuts.
-	KeyboardModifier bypassModifiers = KeyboardModifier::None;
-	for (auto const& bypass : Mod::get()->getSettingValue<std::vector<Keybind>>("safe-mode-bypass-key")) {
-		bool held = m_heldKeys.contains(bypass.key) ||
-			(bypass.key == MOUSE_4 && mouse4Down) || (bypass.key == MOUSE_5 && mouse5Down);
-		if (held && (input.modifiers & bypass.modifiers.value) == bypass.modifiers) {
-			bypassModifiers |= bypass.modifiers.value;
-		}
-	}
-
-	auto matchesWithBypass = [&](char const* setting) {
-		auto bindings = Mod::get()->getSettingValue<std::vector<Keybind>>(setting);
-		// An exact match is already handled by Geode's keybind listener.
-		for (auto const& binding : bindings) {
-			if (binding.key == input.key && binding.modifiers == input.modifiers) return false;
-		}
-		for (auto const& binding : bindings) {
-			auto extra = input.modifiers.value & ~binding.modifiers.value;
-			if (binding.key == input.key &&
-				(input.modifiers & binding.modifiers.value) == binding.modifiers &&
-				extra && !(extra & ~bypassModifiers.value)) return true;
-		}
-		return false;
-	};
-
-	if (input.action != KeyboardInputData::Action::Repeat && matchesWithBypass("toggle-menu")) {
-		this->toggleZoomUI();
-	}
-	if (matchesWithBypass("zoom-in")) this->onZoomKey(true);
-	if (matchesWithBypass("zoom-out")) this->onZoomKey(false);
 }
 
 bool WindowsZoomManager::isSafeModeBypassHeld() const {

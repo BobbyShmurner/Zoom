@@ -19,7 +19,7 @@
 using namespace geode::prelude;
 
 namespace {
-	constexpr float kClosedZoomThreshold = 1.001f;
+	constexpr float kClosedZoomThreshold = 1.005f;
 	constexpr float kZoomSmoothingRate = 16.0f;
 	constexpr float kZoomStopThreshold = 0.0001f;
 

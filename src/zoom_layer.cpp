@@ -26,6 +26,14 @@ namespace {
 	constexpr float kMinimapBaseHeight = 68.0f;
 	constexpr float kMinimapBorderWidth = 1.5f;
 
+	bool shouldShowBackButton() {
+		#ifdef GEODE_IS_IOS
+		return true;
+		#else
+		return SettingsManager::get()->showBackButton;
+		#endif
+	}
+
 	bool isAttemptAlive() {
 		auto playLayer = PlayLayer::get();
 		if (!playLayer || !playLayer->m_player1 || !playLayer->m_player1->m_isDead) {
@@ -295,7 +303,7 @@ bool ZoomLayer::init(CCNode* sceneLayer) {
 	backButton->setSizeMult(1.15f);
 	backButton->setID("back-button"_spr);
 	m_backMenu->addChild(backButton);
-	m_backMenu->setVisible(SettingsManager::get()->showBackButton);
+	m_backMenu->setVisible(shouldShowBackButton());
 
 	m_minimapMenu = CCNode::create();
 	m_minimapMenu->ignoreAnchorPointForPosition(false);
@@ -334,7 +342,7 @@ void ZoomLayer::update(float dt) {
 	CCLayer::update(dt);
 	this->syncSceneView();
 	if (m_backMenu) {
-		m_backMenu->setVisible(SettingsManager::get()->showBackButton);
+		m_backMenu->setVisible(shouldShowBackButton());
 	}
 	this->updateMinimap();
 }

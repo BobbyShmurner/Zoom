@@ -68,7 +68,8 @@
       "name": "Show Back Button",
       "description": "Show the back button inside the zoom menu.",
       "type": "bool",
-      "default": true
+      "default": true,
+      "platforms": ["win", "mac", "android"] 
     },
     "show-zoom-menu-button": {
       "name": "Show Zoom Menu Button",

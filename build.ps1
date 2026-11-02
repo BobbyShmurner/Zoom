@@ -36,6 +36,8 @@ if ($NoRun) { return }
 
 if ($platform -eq "windows") {
 	if ($Profile) { geode profile run $Profile } else { geode run }
+} elseif ($platform -eq "mac-os") {
+	env SteamAppId=322170 SteamGameId=322170 geode run
 } elseif ($platform -eq "android64") {
 	adb push $PSScriptRoot/build-android64/bobby_shmurner.zoom.geode /storage/emulated/0/Android/media/com.geode.launcher/game/geode/mods/bobby_shmurner.zoom.geode
 	adb shell am force-stop com.geode.launcher

@@ -98,6 +98,11 @@ void SettingsManager::init() {
 	});
 
 	#ifdef GEODE_IS_DESKTOP
+	smoothZoom = Mod::get()->getSettingValue<bool>("smooth-scroll");
+	listenForSettingChanges<bool>("smooth-scroll", [&](bool enabled) {
+		smoothZoom = enabled;
+	});
+
 	safeModeBypass = Mod::get()->getSettingValue<bool>("safe-mode-bypass");
 	listenForSettingChanges<bool>("safe-mode-bypass", [&](bool enabled) {
 		safeModeBypass = enabled;

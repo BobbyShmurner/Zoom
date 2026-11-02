@@ -7,6 +7,8 @@
 
 using namespace geode::prelude;
 
+class ZoomLayer;
+
 class WindowsZoomManager {
 public:
 	CCPoint lastMousePos = ccp(0, 0);
@@ -34,6 +36,10 @@ public:
 
 private:
 	std::unordered_set<cocos2d::enumKeyCodes> m_heldKeys;
+	WeakRef<CCNode> m_zoomLayer;
+	CCPoint m_zoomAnchor = ccp(0, 0);
+	float m_pendingZoom = 0.0f;
+	void applyZoomStep(ZoomLayer* zoomLayer, bool zoomIn);
 	bool isPanInputHeld() const;
 	bool isPanButtonHeld() const;
 };

@@ -13,11 +13,15 @@
 #include <Geode/modify/CCScheduler.hpp>
 
 #include <Geode/loader/SettingV3.hpp>
+#include <algorithm>
+#include <cmath>
 
 using namespace geode::prelude;
 
 namespace {
 	constexpr float kClosedZoomThreshold = 1.001f;
+	constexpr float kZoomSmoothingRate = 16.0f;
+	constexpr float kZoomStopThreshold = 0.0001f;
 
 	CCPoint getScreenCenter() {
 		auto screenSize = getScreenSize();
@@ -186,6 +190,8 @@ void WindowsZoomManager::setPanKeybindState(bool down) {
 
 void WindowsZoomManager::resetTransientInputs() {
 	panKeybindDown = false;
+	m_pendingZoom = 0.0f;
+	m_zoomLayer = WeakRef<CCNode>();
 }
 
 bool WindowsZoomManager::isPanInputHeld() const {
@@ -229,12 +235,43 @@ void WindowsZoomManager::update(float dt) {
 	}
 
 	auto zoomLayer = getPausedZoomLayer(false, false);
-	if (!zoomLayer || zoomLayer->getZoom() <= kClosedZoomThreshold) {
+	if (!zoomLayer) {
+		m_pendingZoom = 0.0f;
+		m_zoomLayer = WeakRef<CCNode>();
 		return;
 	}
 
-	if (this->isPanInputHeld()) {
+	if (zoomLayer->getZoom() > kClosedZoomThreshold && this->isPanInputHeld()) {
 		zoomLayer->panBy(deltaMousePos);
+	}
+
+	if (m_pendingZoom != 0.0f) {
+		auto pendingLayer = m_zoomLayer.lock();
+		if (!pendingLayer || pendingLayer.data() != zoomLayer) {
+			m_pendingZoom = 0.0f;
+			m_zoomLayer = WeakRef<CCNode>();
+			return;
+		}
+
+		auto fraction = SettingsManager::get()->smoothZoom
+			? -std::expm1(-kZoomSmoothingRate * std::max(dt, 0.0f))
+			: 1.0f;
+
+		auto step = m_pendingZoom * fraction;
+		m_pendingZoom -= step;
+
+		if (std::abs(m_pendingZoom) < kZoomStopThreshold) {
+			step += m_pendingZoom;
+			m_pendingZoom = 0.0f;
+		}
+
+		// zoomBy uses reciprocal factors for zooming out.
+		auto delta = step >= 0.0f ? std::expm1(step) : -std::expm1(-step);
+		zoomLayer->zoomBy(delta, m_zoomAnchor);
+
+		if (m_pendingZoom <= 0.0f || zoomLayer->getZoom() > kClosedZoomThreshold) {
+			updateZoomLayerMenuState(zoomLayer);
+		}
 	}
 }
 
@@ -259,11 +296,32 @@ void WindowsZoomManager::onScroll(float y) {
 		return;
 	}
 
+	this->applyZoomStep(zoomLayer, y > 0);
+}
+
+void WindowsZoomManager::applyZoomStep(ZoomLayer* zoomLayer, bool zoomIn) {
 	float zoomDelta = SettingsManager::get()->zoomSensitivity * 0.1f;
 
-	zoomLayer->zoomBy(y > 0 ? zoomDelta : -zoomDelta, getMousePos());
+	if (!SettingsManager::get()->smoothZoom) {
+		m_pendingZoom = 0.0f;
+		m_zoomLayer = WeakRef<CCNode>();
+		zoomLayer->zoomBy(zoomIn ? zoomDelta : -zoomDelta, getMousePos());
+		updateZoomLayerMenuState(zoomLayer);
+		return;
+	}
 
-	updateZoomLayerMenuState(zoomLayer);
+	if (auto pendingLayer = m_zoomLayer.lock(); !pendingLayer || pendingLayer.data() != zoomLayer) {
+		m_pendingZoom = 0.0f;
+		m_zoomLayer = WeakRef<CCNode>(zoomLayer);
+	}
+
+	m_zoomAnchor = getMousePos();
+	auto zoomStep = std::log1p(zoomDelta);
+	m_pendingZoom += zoomIn ? zoomStep : -zoomStep;
+
+	if (m_pendingZoom == 0.0f) {
+		updateZoomLayerMenuState(zoomLayer);
+	}
 }
 
 void WindowsZoomManager::onZoomKey(bool zoomIn) {
@@ -283,9 +341,7 @@ void WindowsZoomManager::onZoomKey(bool zoomIn) {
 		return;
 	}
 
-	auto zoomDelta = SettingsManager::get()->zoomSensitivity * 0.1f;
-	zoomLayer->zoomBy(zoomIn ? zoomDelta : -zoomDelta, getMousePos());
-	updateZoomLayerMenuState(zoomLayer);
+	this->applyZoomStep(zoomLayer, zoomIn);
 }
 
 class $modify(DesktopZoomPauseLayer, PauseLayer) {

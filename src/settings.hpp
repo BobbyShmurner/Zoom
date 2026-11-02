@@ -39,6 +39,7 @@ public:
 
 	#ifdef GEODE_IS_DESKTOP
 		bool safeModeBypass = false;
+		bool smoothZoom = true;
 		bool autoHideMenu;
 		bool autoShowMenu;
 		bool altDisablesZoom;

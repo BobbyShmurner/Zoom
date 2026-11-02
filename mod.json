@@ -53,6 +53,13 @@
         "slider": true
       }
     },
+    "smooth-scroll": {
+      "name": "Smooth Zooming",
+      "description": "Smoothly animate zoom changes from the scroll wheel and zoom keybinds.",
+      "type": "bool",
+      "default": true,
+      "platforms": ["win", "mac"]
+    },
     "hide-practice-buttons": {
       "name": "Hide Practice Buttons",
       "description": "Hide the practice checkpoint buttons while zooming.",

@@ -18,8 +18,3 @@ Huge thanks to [hiimjasmine00](https://github.com/hiimjasmine00) for adding macO
 # Note about macOS and iOS
 Because I don't own any Apple devices, there may be a couple of bugs when using macOS or iOS
 If there are any issues, please report them on GitHub, or contact me on Discord @BobbyShmurner, and I'll do my best to fix them :)
-
-# Known Bugs
-If your mouse supports horizontal scrolling, Geometry Dash will register it as a scroll up.
-This sometimes causes you to zoom in accidently while panning around with the middle mouse.
-There isn't a simple immediate fix for this, so for now I'm just gonna leave it as it is :D

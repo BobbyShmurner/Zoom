@@ -27,7 +27,7 @@ public:
 	void onKeyboardInput(KeyboardInputData const& input);
 	bool isSafeModeBypassHeld() const;
 	std::string safeModeBypassKeyLabel() const;
-	void onScroll(float y, float x);
+	void onScroll(float y);
 	void onZoomKey(bool zoomIn);
 	void setPanKeybindState(bool down);
 	void resetTransientInputs();

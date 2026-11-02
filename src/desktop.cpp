@@ -10,7 +10,6 @@
 
 #include <Geode/modify/PauseLayer.hpp>
 #include <Geode/modify/CCKeyboardDispatcher.hpp>
-#include <Geode/modify/CCMouseDispatcher.hpp>
 #include <Geode/modify/CCScheduler.hpp>
 
 #include <Geode/loader/SettingV3.hpp>
@@ -239,7 +238,11 @@ void WindowsZoomManager::update(float dt) {
 	}
 }
 
-void WindowsZoomManager::onScroll(float y, float x) {
+void WindowsZoomManager::onScroll(float y) {
+	if (y == 0.0f) {
+		return;
+	}
+
 	if (SettingsManager::get()->altDisablesZoom) {
 		auto kb = CCKeyboardDispatcher::get();
 		if (kb->getAltKeyPressed()) {
@@ -258,13 +261,7 @@ void WindowsZoomManager::onScroll(float y, float x) {
 
 	float zoomDelta = SettingsManager::get()->zoomSensitivity * 0.1f;
 
-	if (Loader::get()->isModLoaded("prevter.smooth-scroll")) {
-		zoomLayer->zoomBy(-y * zoomDelta * 0.1f, getMousePos());
-	} else if (y > 0) {
-		zoomLayer->zoomBy(-zoomDelta, getMousePos());
-	} else {
-		zoomLayer->zoomBy(zoomDelta, getMousePos());
-	}
+	zoomLayer->zoomBy(y > 0 ? zoomDelta : -zoomDelta, getMousePos());
 
 	updateZoomLayerMenuState(zoomLayer);
 }
@@ -373,12 +370,14 @@ $execute {
 		WindowsZoomManager::get()->onMouseInput(input);
 		return ListenerResult::Propagate;
 	}).leak();
-}
 
-class $modify(CCMouseDispatcher) {
-	bool dispatchScrollMSG(float y, float x) {
-		WindowsZoomManager::get()->onScroll(y, x);
-		return CCMouseDispatcher::dispatchScrollMSG(y, x);
-	}
-};
+	ScrollWheelEvent().listen([](double x, double y) -> bool {
+		if (y != 0.0) {
+			Loader::get()->queueInMainThread([y] {
+				WindowsZoomManager::get()->onScroll(static_cast<float>(y));
+			});
+		}
+		return ListenerResult::Propagate;
+	}).leak();
+}
 #endif // GEODE_IS_DESKTOP

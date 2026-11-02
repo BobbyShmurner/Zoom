@@ -332,7 +332,7 @@ bool ZoomLayer::init(CCNode* sceneLayer) {
 	this->setTouchEnabled(true);
 
 	m_backMenu->setTouchPriority(CCDirector::sharedDirector()->getTouchDispatcher()->getTargetPrio());
-	CCDirector::sharedDirector()->getTouchDispatcher()->registerForcePrio(m_backMenu, 2);
+	CCDirector::sharedDirector()->getTouchDispatcher()->registerForcePrio(m_backMenu, 2, 0);
 #endif
 
 	return true;

@@ -101,10 +101,13 @@ ZoomLayer* ZoomLayer::request(CCNode* sceneLayer, bool createIfMissing) {
 		if (!s_safeModePromptOpen) {
 			s_safeModePromptOpen = true;
 			createQuickPopup(
-				"Enable Safe Mode?",
-				"Demon List runs are now invalidated for zooming mid attempt.\n"
-				"Enable Safe Mode to prevent zooming while the player is alive?",
+				"Enable Zoom Safe Mode?",
+				"Ranked Demon List leaderboards, such as <cy>Pointercrate</c> and <cy>AREDL</c>, "
+				"now <cr>invalidate runs</c> that use zoom mid-attempt.\n\n"
+				"Enable <cg>Safe Mode</c> to prevent zooming while you're alive?\n"
+				"<cf>Note: Safe Mode still allows zooming after you die.</c>",
 				"Disable", "Enable",
+				std::min(460.f, CCDirector::get()->getWinSize().width - 20.f),
 				[scene = WeakRef(sceneLayer), createIfMissing](FLAlertLayer*, bool enable) {
 					s_safeModePromptOpen = false;
 					Mod::get()->setSettingValue<bool>("safe-mode", enable);

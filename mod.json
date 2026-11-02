@@ -47,10 +47,12 @@
       "description": "How quickly zoom responds. Higher values make scroll, keybind, and pinch zoom faster.",
       "type": "float",
       "default": 1,
-      "min": 0,
+      "min": 0.1,
       "max": 10,
       "control": {
-        "slider": true
+        "slider": true,
+        "arrow-step": 0.1,
+        "slider-step": 0.1
       }
     },
     "smooth-scroll": {

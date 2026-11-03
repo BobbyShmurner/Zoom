@@ -20,7 +20,9 @@ using namespace geode::prelude;
 namespace {
 	ZoomLayer* s_activeZoomLayer = nullptr;
 	bool s_safeModeBypassed = false;
+	#ifdef GEODE_IS_DESKTOP
 	bool s_safeModePromptOpen = false;
+	#endif
 	constexpr float kMinimapMargin = 12.0f;
 	constexpr float kMinimapBaseWidth = 112.0f;
 	constexpr float kMinimapBaseHeight = 68.0f;
@@ -104,6 +106,7 @@ ZoomLayer* ZoomLayer::request(CCNode* sceneLayer, bool createIfMissing) {
 		return nullptr;
 	}
 
+	#ifdef GEODE_IS_DESKTOP
 	if (isAttemptAlive() && !s_safeModeBypassed &&
 		!Mod::get()->getSavedValue<bool>("safe-mode-prompt-answered", false)) {
 		if (!s_safeModePromptOpen) {
@@ -132,6 +135,7 @@ ZoomLayer* ZoomLayer::request(CCNode* sceneLayer, bool createIfMissing) {
 		}
 		return nullptr;
 	}
+	#endif
 
 	bool activatedBypass = false;
 	#ifdef GEODE_IS_DESKTOP
